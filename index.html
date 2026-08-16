@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<title>Неоновая Жизнь</title>
+
+<style>
+:root {
+    --bg-dark: #0a051a;
+    --bg-panel: #161d2f;
+    --panel-accent: #1e293b;
+    --text-light: #e0f7fa;
+    --accent-purple: #9c27b0;
+    --accent-emerald: #00b894;
+    --glow-purple: rgba(156, 39, 176, 0.45);
+    --glow-emerald: rgba(0, 184, 148, 0.45);
+    --border-glow: linear-gradient(135deg, var(--accent-purple), var(--accent-emerald));
+    --btn-danger: #ef4444;
+    --gold: #facc15;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Lucida Console', Consolas, 'Courier New', monospace; scroll-behavior: smooth; }
+
+html { zoom: 1; }
+
+body {
+    background: radial-gradient(circle at top left, #2a044a, #000000);
+    color: var(--text-light);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === ШАПКА === */
+.top-menu {
+    background: var(--border-glow);
+    padding: 12px 20px;
+    text-align: center;
+    background-clip: padding-box;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 0 20px var(--glow-purple);
+}
+.top-menu h1 {
+    color: var(--accent-emerald);
+    font-size: 22px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--glow-emerald), 0 0 20px var(--glow-emerald);
+}
+
+/* === HUD === */
+.hud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: rgba(22, 29, 47, 0.94);
+    border-bottom: 1px solid #334155;
+    font-size: 12px;
+    position: sticky;
+    top: 54px;
+    z-index: 95;
+}
+.hud-item { display: flex; align-items: center; gap: 5px; color: #94a3b8; }
+.hud-item b { color: var(--text-light); }
+.hud-item .gold { color: var(--gold); text-shadow: 0 0 6px rgba(250,204,21,0.5); }
+.hud-item .green { color: #4ade80; text-shadow: 0 0 6px rgba(74,222,128,0.5); }
+.hud-item .purple { color: #c084fc; text-shadow: 0 0 6px rgba(192,132,252,0.5); }
+.hud-btn { cursor: pointer; padding: 3px 8px; border: 1px solid var(--accent-purple); border-radius: 6px; }
+.pbar { width: 80px; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; border: 1px solid #334155; }
+.pfill { height: 100%; width: 0%; transition: width 0.3s; }
+.pfill.hp { background: linear-gradient(90deg, #ef4444, #f97316); }
+.pfill.en { background: linear-gradient(90deg, #f59e0b, #eab308); }
+.pfill.xp { background: linear-gradient(90deg, #8b5cf6, #d946ef); }
+.shield-square {
+    display: inline-block;
+    width: 1.05em;
+    height: 1.05em;
+    background: linear-gradient(135deg, #8b5cf6, #00b894);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 3px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.45);
+    vertical-align: -0.15em;
+    position: relative;
+}
+.shield-square::after {
+    content: '';
+    position: absolute;
+    left: 24%;
+    top: 22%;
+    width: 52%;
+    height: 52%;
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 2px;
+}
+
+/* === МАСШТАБ === */
+.zoom-bar {
+    position: fixed;
+    right: 12px;
+    top: 12px;
+    z-index: 200;
+    display: flex;
+    gap: 4px;
+    background: rgba(10,5,26,0.85);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 3px;
+}
+.zoom-bar button {
+    background: #263238;
+    color: var(--text-light);
+    border: 1px solid #334155;
+    border-radius: 5px;
+    width: 30px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+.zoom-bar .zval { color: var(--accent-emerald); font-size: 11px; display: flex; align-items: center; padding: 0 6px; }
+.admin-btn {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(10,5,26,0.85);
+    border: 1px solid #334155;
+    color: var(--text-light);
+    border-radius: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.admin-btn:hover { background: var(--accent-purple); color: #000; }
+
+/* === КАРТОЧКИ ГЛАВНОЙ === */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    padding: 14px;
+    flex: 1;
+}
+.card {
+    grid-column: span 2;
+    background: var(--bg-panel);
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 150px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 14px;
+    background: var(--border-glow);
+    opacity: 0;
+    z-index: -1;
+}
+.card-icon { font-size: 34px; line-height: 1; margin-bottom: 10px; }
+.card-title { color: var(--accent-emerald); font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+.card-sub { color: #94a3b8; font-size: 11px; margin-top: 6px; line-height: 1.5; flex-grow: 1; }
+.card-open { color: var(--accent-purple); font-size: 11px; margin-top: 8px; font-weight: 600; }
+
+/* === ЭКРАНЫ / ОКНА === */
+.screen { display: none; }
+.screen.active { display: block; }
+
+.win-body { padding: 14px 16px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+/* === БЛОКИ === */
+.panel {
+    background: var(--bg-panel);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.panel h3 {
+    color: var(--accent-emerald);
+    font-size: 14px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* === КНОПКИ === */
+.action-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border: 1px solid #334155;
+    background: #263238;
+    color: var(--text-light);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+}
+.action-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; box-shadow: none; }
+.action-btn.danger { border-color: var(--btn-danger); color: var(--btn-danger); }
+.action-btn.good { background: var(--accent-emerald); color: #000; border-color: transparent; }
+.action-btn.good:disabled { background: #475569; color: #64748b; border-color: #334155; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.fight-item {
+    background: #263238;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+.fight-item strong { color: var(--accent-emerald); font-size: 12px; }
+.fight-item .fi-ico { font-size: 20px; }
+.fight-start {
+    background: var(--accent-emerald);
+    color: #000;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 11px;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+.fight-start:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+.hint { color: #64748b; font-size: 10px; line-height: 1.5; }
+.gold { color: var(--gold); }
+.green { color: #4ade80; }
+.red { color: #ff7575; }
+.cd { color: var(--gold); font-weight: 600; }
+
+.inp, .sel {
+    width: 100%;
+    padding: 8px;
+    margin: 4px 0;
+    background: #263238;
+    border: 1px solid #334155;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: inherit;
+}
+.inp:focus, .sel:focus { border-color: var(--accent-purple); box-shadow: 0 0 10px var(--glow-purple); }
+
+/* === ПЕРСОНАЖ / ПОРТРЕТ === */
+.char-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.char-slots { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 140px; max-width: 220px; }
+.slot {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 7px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+}
+.slot .sl-ico { font-size: 18px; }
+.slot .sl-name { color: #94a3b8; font-size: 9px; }
+.slot .sl-empty { color: #475569; }
+
+/* === ТОВАРЫ === */
+.shop-item {
+    background: #263238;
+    padding: 9px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 1px solid #334155;
+    font-size: 11px;
+    margin-bottom: 7px;
+}
+.shop-item .si-top { display: flex; align-items: center; gap: 8px; }
+.shop-item .si-ico { font-size: 26px; }
+.shop-item strong { font-size: 13px; color: var(--accent-emerald); }
+.shop-item small { color: #94a3b8; }
+.shop-item .si-buy { background: var(--accent-emerald); color: white; border: none; padding: 6px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; font-family: inherit; font-size: 11px; }
+.shop-item .si-buy:disabled { background: #475569; cursor: not-allowed; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tab {
+    background: #263238;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+}
+.tab.active { background: var(--accent-purple); border-color: var(--accent-purple); color: #fff; box-shadow: 0 0 10px var(--glow-purple); }
+
+/* === БОЙ === */
+.battle-log {
+    background: rgba(10,5,26,0.7);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 11px;
+    line-height: 1.6;
+    max-height: 130px;
+    overflow-y: auto;
+    margin-top: 8px;
+    font-family: 'Lucida Console', monospace;
+}
+.fight-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+
+/* === ЧАТ === */
+.chat-panel { grid-column: span 6; background: var(--bg-panel); border: 1px solid #334155; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; height: 260px; }
+.chat-panel h3 { color: var(--accent-emerald); font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #334155; display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.chat-box {
+    background: rgba(10,5,26,0.6);
+    flex-grow: 1;
+    font-size: 12px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    padding: 10px;
+    line-height: 1.6;
+    border-radius: 0 0 8px 8px;
+    margin-top: 6px;
+    font-family: 'Lucida Console', monospace;
+}
+.chat-input-container { position: relative; margin-top: 8px; background: rgba(22,29,47,0.8); padding: 5px; border-radius: 8px; border: 1px solid #334155; flex-shrink: 0; }
+.chat-input { width: 100%; background: transparent; border: 1px solid #475569; color: var(--text-light); padding: 8px 40px 8px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; }
+.send-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 30px; background: var(--accent-emerald); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; height: 28px; }
+
+/* === БАДЖИ БУФОВ === */
+.buff-badge {
+    display: inline-block;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid #f59e0b;
+    color: #f59e0b;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 10px;
+    margin: 2px;
+}
+
+/* === НИЖНЕЕ МЕНЮ === */
+.bottom-menu {
+    background: rgba(10,5,26,0.92);
+    padding: 10px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-top: 1px solid #334155;
+    position: sticky;
+    bottom: 0;
+    z-index: 95;
+}
+.menu-btn {
+    color: var(--accent-emerald);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+}
+.menu-btn.danger { color: var(--btn-danger); }
+
+/* === СТАТЫ === */
+.stats-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+.stat-chip { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 7px 9px; font-size: 11px; }
+.stat-chip b { color: var(--accent-emerald); }
+
+/* === КНОПКА СНЯТЬ === */
+.unequip-btn {
+    background: #334155;
+    color: var(--text-light);
+    border: 1px solid #475569;
+    border-radius: 5px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+.unequip-btn:hover { background: var(--btn-danger); color: #fff; }
+
+/* === ОКНО ПРЕДМЕТА === */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--accent-purple);
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 340px;
+    width: 100%;
+    box-shadow: 0 0 25px var(--glow-purple);
+}
+.modal h3 { color: var(--accent-emerald); font-size: 14px; margin: 8px 0 10px; text-align: center; }
+.mi-ico { font-size: 40px; text-align: center; }
+.mi-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px dashed #334155; }
+.mi-row span { color: #94a3b8; }
+.mi-row b { color: var(--text-light); }
+
+/* === АДАПТИВ === */
+@media (max-width: 1000px) {
+    .game-grid { grid-template-columns: repeat(2, 1fr); }
+    .card { grid-column: span 1; min-height: 130px; }
+    .chat-panel { grid-column: span 2; }
+}
+@media (max-width: 560px) {
+    .game-grid { grid-template-columns: 1fr; padding: 10px; }
+    .card { grid-column: span 1; min-height: 110px; }
+    .chat-panel { grid-column: span 1; height: 220px; }
+    .hud { top: 52px; gap: 7px; font-size: 11px; }
+    .top-menu h1 { font-size: 16px; }
+    .zoom-bar { right: 8px; top: 8px; }
+    .win-body { padding: 10px; }
+}
+</style>
+</head>
+<body onload="loadGame()">
+<noscript><style>#noscriptMsg{display:block!important;}</style></noscript>
+<div id="noscriptMsg" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#ef4444;color:#fff;padding:12px 16px;font-size:14px;text-align:center;">
+    Для игры включите JavaScript. Откройте файл в браузере (Chrome / Edge). На телефоне выберите «Открыть с помощью» → браузер, а не предпросмотр файла.
+</div>
+
+<!-- ШАПКА -->
+<div class="top-menu">
+<h1><span>🏛️</span> НЕОНОВАЯ ЖИЗНЬ</h1>
+<button class="admin-btn" onclick="openAdmin()" title="Админ-панель">🔑</button>
+</div>
+
+<!-- МАСШТАБ -->
+<div class="zoom-bar">
+<button onclick="setZoom(player.zoom - 10)" title="Уменьшить">-</button>
+<span class="zval" id="zoomVal">100%</span>
+<button onclick="setZoom(player.zoom + 10)" title="Увеличить">+</button>
+<button onclick="setZoom(100)" title="Сброс масштаба">=</button>
+</div>
+
+<!-- HUD -->
+<div class="hud" id="hud">
+    <div class="hud-item">LVL <b id="hudLvl">1</b></div>
+    <div class="hud-item">XP <div class="pbar"><div class="pfill xp" id="hudXp"></div></div> <b id="hudXpTxt">0/100</b></div>
+    <div class="hud-item">HP <div class="pbar"><div class="pfill hp" id="hudHp"></div></div> <b id="hudHpTxt">1000/1000</b></div>
+    <div class="hud-item">ENERGY <div class="pbar"><div class="pfill en" id="hudEn"></div></div> <b id="hudEnTxt">250/250</b></div>
+    <div class="hud-item">Очки <b class="purple" id="hudAp">5</b></div>
+    <div class="hud-item">Кредиты <b class="gold" id="hudCred">1000</b></div>
+    <div class="hud-item">Баксы <b class="green" id="hudBucks">0</b></div>
+    <div class="hud-item">Доход <b class="green" id="hudIncome">+0/мин</b></div>
+    <div class="hud-item" id="buffBadges"></div>
+</div>
+
+<!-- ГЛАВНЫЙ ЭКРАН -->
+<div id="screen-main" class="screen active">
+    <div class="game-grid" id="mainGrid"></div>
+    <div class="chat-panel" id="chatPanel" style="margin:0 14px 14px;">
+        <h3><span>💬</span> Общий чат</h3>
+        <div class="chat-box" id="chatBox">[Система] Игра загружается, братан...</div>
+        <div class="chat-input-container">
+            <input class="chat-input" id="chatInput" placeholder="Написать в чат..." onkeydown="if(event.key==='Enter')sendMessage()" />
+            <button class="send-btn" onclick="sendMessage()">&#10148;</button>
+        </div>
+    </div>
+</div>
+
+<!-- ЭКРАН: СВЯЗИ -->
+<div id="screen-robbery" class="screen">
+    <div class="win-body" id="robberyBody"></div>
+</div>
+
+<!-- ЭКРАН: РАЗБОРКИ -->
+<div id="screen-brawl" class="screen">
+    <div class="win-body" id="brawlBody"></div>
+</div>
+
+<!-- ЭКРАН: БОСС -->
+<div id="screen-boss" class="screen">
+    <div class="win-body" id="bossBody"></div>
+</div>
+
+<!-- ЭКРАН: ПОДРАБОТКА -->
+<div id="screen-work" class="screen">
+    <div class="win-body" id="workBody"></div>
+</div>
+
+<!-- ЭКРАН: БАНК -->
+<div id="screen-bank" class="screen">
+    <div class="win-body" id="bankBody"></div>
+</div>
+
+<!-- ЭКРАН: БИЗНЕС -->
+<div id="screen-crew" class="screen">
+    <div class="win-body" id="crewBody"></div>
+</div>
+
+<!-- ЭКРАН: ГАРАЖ -->
+<div id="screen-garage" class="screen">
+    <div class="win-body" id="garageBody"></div>
+</div>
+
+<!-- ЭКРАН: КАЗИНО -->
+<div id="screen-casino" class="screen">
+    <div class="win-body" id="casinoBody"></div>
+</div>
+
+<!-- ЭКРАН: МАГАЗИН -->
+<div id="screen-shop" class="screen">
+    <div class="win-body" id="shopBody"></div>
+</div>
+
+<!-- ЭКРАН: СУМКА -->
+<div id="screen-inventory" class="screen">
+    <div class="win-body" id="inventoryBody"></div>
+</div>
+
+<!-- ЭКРАН: ПЕРСОНАЖ -->
+<div id="screen-character" class="screen">
+    <div class="win-body" id="characterBody"></div>
+</div>
+
+<!-- ЭКРАН: ПОМОЩЬ -->
+<div id="screen-help" class="screen">
+    <div class="win-body" id="helpBody"></div>
+</div>
+
+<!-- ЭКРАН: АДМИН -->
+<div id="screen-admin" class="screen">
+    <div class="win-body" id="adminBody"></div>
+</div>
+
+<!-- НИЖНЕЕ МЕНЮ -->
+<div class="bottom-menu">
+<button class="menu-btn" onclick="goMain()"><span>🏠</span> Главная</button>
+<button class="menu-btn" onclick="openScreen('character')"><span>👤</span> Персонаж</button>
+<button class="menu-btn" onclick="claimDaily()"><span>🎁</span> Бонус дня</button>
+<button class="menu-btn" onclick="saveGame()"><span>💾</span> Сохранить</button>
+<button class="menu-btn" onclick="openScreen('help')"><span>❓</span> Помощь</button>
+<button class="menu-btn danger" onclick="resetGame()"><span>♻️</span> Сброс</button>
+</div>
+
+<!-- ОКНО ПРЕДМЕТА -->
+<div class="modal-overlay" id="itemModal" onclick="closeItemModal()">
+    <div class="modal" onclick="event.stopPropagation()" id="itemModalBox"></div>
+</div>
+
+<script>
+// ============================ ДАННЫЕ ============================
+
+const ITEMS = {
+    weapon: [
+        {id:'brass_knuckles', name:'Кастет', icon:'🥊', color:'#94a3b8', slot:'right_hand', price:50, dmg:8},
+        {id:'baseball_bat', name:'Бита', icon:'🏏', color:'#b45309', slot:'right_hand', price:200, dmg:20},
+        {id:'shocker', name:'Пневмат', icon:'⚡', color:'#facc15', slot:'right_hand', price:500, dmg:35, crit:5},
+        {id:'butterfly', name:'Бабочка', icon:'🔪', color:'#e5e7eb', slot:'right_hand', price:1200, dmg:55, crit:10},
+        {id:'sawed_off', name:'Обрез', icon:'🔫', color:'#374151', slot:'right_hand', price:3000, dmg:85, crit:15},
+        {id:'machete', name:'Мачете', icon:'🔪', color:'#22c55e', slot:'right_hand', price:1800, dmg:60, crit:5},
+        {id:'chainsaw', name:'Бензопила', icon:'🪚', color:'#ef4444', slot:'right_hand', price:5500, dmg:110, crit:10},
+        {id:'pistol', name:'Пистолет', icon:'🔫', color:'#9ca3af', slot:'right_hand', price:9000, dmg:160, crit:18},
+        {id:'ak', name:'Автомат', icon:'🔫', color:'#a16207', slot:'right_hand', price:15000, dmg:220, crit:25}
+    ],
+    armor: [
+        {id:'tracksuit', name:'Олимпийка', icon:'🥋', color:'#16a34a', slot:'torso', price:150, armor:5, dodge:5},
+        {id:'leather_jacket', name:'Косуха', icon:'🧥', color:'#b45309', slot:'torso', price:500, armor:12, hpBonus:50},
+        {id:'bulletproof', name:'Броник', icon:'🛡️', color:'#475569', slot:'torso', price:1500, armor:30, hpBonus:150},
+        {id:'jeans', name:'Треники', icon:'👖', color:'#2563eb', slot:'legs', price:200, armor:18},
+        {id:'steel_caps', name:'Кроссы', icon:'👟', color:'#f97316', slot:'feet', price:300, dodge:10},
+        {id:'flat_cap', name:'Кепка', icon:'🧢', color:'#1f2937', slot:'head', price:200, armor:5, dodge:5},
+        {id:'biker_jacket', name:'Рокерская куртка', icon:'🧥', color:'#4a044e', slot:'torso', price:700, armor:18, dodge:5},
+        {id:'combat_vest', name:'Разгрузка', icon:'🎽', color:'#334155', slot:'torso', price:2500, armor:40, hpBonus:120},
+        {id:'steel_helmet', name:'Каска', icon:'⛑️', color:'#64748b', slot:'head', price:600, armor:10},
+        {id:'combat_boots', name:'Армейские ботинки', icon:'🥾', color:'#57534e', slot:'feet', price:700, armor:12, dodge:5}
+    ],
+    accessory: [
+        {id:'bandana', name:'Бандана', icon:'🧣', color:'#dc2626', slot:'head', price:100, armor:5},
+        {id:'gold_chain', name:'Цепка', icon:'📿', color:'#facc15', slot:'neck', price:800, armor:8, crit:5},
+        {id:'cross', name:'Крест', icon:'✝️', color:'#e5e7eb', slot:'neck', price:2500, armor:15, crit:8},
+        {id:'sunglasses', name:'Хамелеоны', icon:'🕶️', color:'#0f172a', slot:'head', price:600, dodge:10},
+        {id:'watch', name:'Ролекс', icon:'⌚', color:'#eab308', slot:'neck', price:3500, armor:5, crit:12},
+        {id:'ring', name:'Перстень', icon:'💍', color:'#facc15', slot:'neck', price:5000, armor:5, crit:15}
+    ],
+    consumable: [
+        {id:'energ', name:'Энергетик', icon:'🥤', price:40, energy:30},
+        {id:'bandage', name:'Бинты', icon:'🩹', price:25, heal:20},
+        {id:'medkit', name:'Аптечка', icon:'💊', price:60, heal:60},
+        {id:'protein', name:'Коктейль силы', icon:'💪', price:150, buff:'dmg', buffAmt:25, buffDur:90},
+        {id:'pills', name:'Допинг', icon:'🔥', price:150, buff:'crit', buffAmt:15, buffDur:90},
+        {id:'burger', name:'Бургер', icon:'🍔', price:40, heal:35},
+        {id:'beer', name:'Ящик пива', icon:'🍺', price:90, energy:50},
+        {id:'steak', name:'Стейк', icon:'🥩', price:120, heal:100},
+        {id:'firstaid', name:'Медкомплект', icon:'🩺', price:250, heal:200},
+        {id:'adrenaline', name:'Адреналин', icon:'💉', price:200, energy:80},
+        {id:'fury', name:'Ярость', icon:'😡', price:200, buff:'dmg', buffAmt:40, buffDur:120},
+        {id:'gamble', name:'Азарт', icon:'🎯', price:200, buff:'crit', buffAmt:25, buffDur:120}
+    ]
+};
+
+const UPGRADES = [
+    {id:'up_dmg', name:'Качалка', icon:'💪', stat:'dmg', per:3, base:100, mult:1.7},
+    {id:'up_hp', name:'Выносливость', icon:'❤️', stat:'hp', per:25, base:100, mult:1.7},
+    {id:'up_dodge', name:'Реакция', icon:'💨', stat:'dodge', per:2, base:150, mult:1.8},
+    {id:'up_crit', name:'Точность', icon:'🎯', stat:'crit', per:2, base:150, mult:1.8},
+    {id:'up_energy', name:'Дыхалка', icon:'⚡', stat:'energy', per:10, base:120, mult:1.8}
+];
+
+const BOOSTERS = [
+    {id:'b_dmg', name:'Злость', icon:'💢', desc:'Урон +50 на 60 сек', price:250, key:'dmg', amt:50, dur:60},
+    {id:'b_armor', name:'Защита', icon:'🧱', desc:'Броня +40 на 60 сек', price:250, key:'armor', amt:40, dur:60},
+    {id:'b_crit', name:'Глаз хищника', icon:'👁️', desc:'Крит +30 на 60 сек', price:300, key:'crit', amt:30, dur:60},
+    {id:'b_energy', name:'Второе дыхание', icon:'🔋', desc:'Энергия +100 мгновенно', price:150, key:'energy', amt:100, dur:0},
+    {id:'b_dodge', name:'Тень', icon:'💨', desc:'Уклонение +25 на 60 сек', price:250, key:'dodge', amt:25, dur:60}
+];
+
+const AP_STATS = [
+    {key:'dmg', name:'Урон', icon:'💢'},
+    {key:'armor', name:'Броня', icon:'🛡️'},
+    {key:'hp', name:'Здоровье', icon:'❤️'},
+    {key:'dodge', name:'Уклонение', icon:'💨'},
+    {key:'crit', name:'Крит', icon:'🎯'}
+];
+
+const SQ_SHIELD = '<span class="shield-square" title="Щит"></span>';
+
+const CLASSES = [
+    {id:'defender', name:'Защитник', icon:'🛡️', ability:'Реанимация', desc:'Способность «Реанимация»: раз в 5 сек лечит 10% от полного здоровья в бою.'},
+    {id:'tank', name:'Танк', icon:SQ_SHIELD, ability:'Щит', desc:'Способность «Щит»: на 5 сек даёт броню 10% от здоровья + 10% от брони.'},
+    {id:'rogue', name:'Ловкач', icon:'💨', ability:'Уворот', desc:'Способность «Уворот»: на 5 сек даёт +10% уклонения и +10% крита.'}
+];
+
+const ROBBERIES = [
+    {id:'r1', name:'Пьянчуга', icon:'🍺', reward:[80,120], risk:0.05, exp:20},
+    {id:'r2', name:'Мелкий торгаш', icon:'🧺', reward:[150,220], risk:0.2, exp:30},
+    {id:'r3', name:'Скупщик краденого', icon:'💍', reward:[300,420], risk:0.35, exp:50},
+    {id:'r4', name:'Бизнесмен', icon:'👔', reward:[200,300], risk:0.2, exp:35},
+    {id:'r5', name:'Бутик', icon:'🛍️', reward:[400,550], risk:0.35, exp:60},
+    {id:'r6', name:'Обменник', icon:'💱', reward:[650,850], risk:0.5, exp:90},
+    {id:'r7', name:'Наркокурьер', icon:'🚬', reward:[350,450], risk:0.3, exp:50},
+    {id:'r8', name:'Контрабанда', icon:'📦', reward:[600,800], risk:0.45, exp:80},
+    {id:'r9', name:'Таможенник', icon:'🛃', reward:[900,1200], risk:0.6, exp:120},
+    {id:'r10', name:'Контейнерный вор', icon:'🚢', reward:[700,900], risk:0.4, exp:80},
+    {id:'r11', name:'Судовладелец', icon:'🧭', reward:[1100,1400], risk:0.55, exp:110},
+    {id:'r12', name:'Оружейный склад', icon:'📦', reward:[1600,2000], risk:0.7, exp:160}
+];
+
+const ROBBERY_CHAIN = ROBBERIES.slice(0, 10);
+
+const BRAWLS = [
+    {id:'shpana', name:'Шпана', icon:'🕶️', hp:150, dmg:20, cost:20, reward:130, exp:50, control:5, minLevel:1},
+    {id:'bychok', name:'Бычок', icon:'😤', hp:220, dmg:25, cost:25, reward:180, exp:70, control:7, minLevel:1},
+    {id:'bandit', name:'Бандит', icon:'🔪', hp:270, dmg:32, cost:30, reward:240, exp:95, control:8, minLevel:3},
+    {id:'lomshchik', name:'Ломщик', icon:'🔨', hp:330, dmg:36, cost:35, reward:300, exp:120, control:10, minLevel:3},
+    {id:'gromila', name:'Громила', icon:'💪', hp:430, dmg:45, cost:40, reward:380, exp:150, control:12, minLevel:5},
+    {id:'shtaket', name:'Штакет', icon:'🧱', hp:500, dmg:50, cost:45, reward:460, exp:180, control:14, minLevel:5},
+    {id:'killer', name:'Киллер', icon:'🗡️', hp:620, dmg:58, cost:50, reward:560, exp:210, control:18, minLevel:7},
+    {id:'myasnik', name:'Мясник', icon:'🪓', hp:720, dmg:62, cost:55, reward:680, exp:240, control:22, minLevel:7},
+    {id:'tsep', name:'Цепочник', icon:'⛓️', hp:850, dmg:70, cost:60, reward:900, exp:280, control:26, minLevel:9},
+    {id:'britva', name:'Бритва', icon:'🪒', hp:1000, dmg:78, cost:65, reward:1100, exp:330, control:30, minLevel:11},
+    {id:'glad', name:'Гладиатор', icon:'🦾', hp:1300, dmg:90, cost:75, reward:1500, exp:400, control:36, minLevel:13}
+];
+
+const BOSSES = [
+    {id:'boss1', name:'Пахан', icon:'👑', hp:3600, dmg:195, cost:50, reward:2700, exp:1020, control:30, dodge:5, crit:5, minLevel:1, isBoss:true},
+    {id:'boss2', name:'Авторитет', icon:'🧙', hp:7800, dmg:285, cost:60, reward:5400, exp:1800, control:40, dodge:8, crit:8, minLevel:5, isBoss:true},
+    {id:'boss3', name:'Криминальный босс', icon:'🎩', hp:13500, dmg:375, cost:75, reward:10500, exp:3000, control:50, dodge:12, crit:12, minLevel:10, isBoss:true},
+    {id:'boss4', name:'Воротила', icon:'💼', hp:22500, dmg:495, cost:90, reward:19500, exp:4800, control:60, dodge:15, crit:15, minLevel:15, isBoss:true},
+    {id:'boss5', name:'Главарюга', icon:'👺', hp:36000, dmg:675, cost:110, reward:36000, exp:7800, control:75, dodge:20, crit:20, minLevel:20, isBoss:true}
+];
+const BOSS_COOLDOWN = 600000;
+
+const JOBS = [
+    {id:'courier', name:'Курьер', icon:'📦', cost:4, pay:[7,11], exp:5, risk:0},
+    {id:'loader', name:'Грузчик', icon:'🏋️', cost:6, pay:[13,18], exp:7, risk:0},
+    {id:'guard', name:'Охранник', icon:'🛡️', cost:10, pay:[25,33], exp:12, risk:0.05},
+    {id:'night', name:'Ночная работа', icon:'🌙', cost:15, pay:[50,70], exp:18, risk:0.15}
+];
+
+const CREW = [
+    {id:'thug', name:'Грузчик', icon:'📦', cost:100, costForever:10000, income:1},
+    {id:'driver', name:'Таксопарк', icon:'🚕', cost:300, costForever:30000, income:3},
+    {id:'lookout', name:'Офис', icon:'🏢', cost:800, costForever:80000, income:8},
+    {id:'foreman', name:'Завод', icon:'🏭', cost:2000, costForever:200000, income:13}
+];
+
+const CARS = [
+    {id:'bike', name:'Мопед Оса', icon:'🛵', price:300, energyMax:10, dmg:0, crit:1, regen:0},
+    {id:'sedan', name:'Нива Корч', icon:'🚙', price:1200, energyMax:20, dmg:5, crit:0, regen:1},
+    {id:'muscle', name:'Додж Бык', icon:'🏎️', price:4000, energyMax:30, dmg:8, crit:5, regen:1},
+    {id:'sport', name:'Суперкар Молния', icon:'🚀', price:12000, energyMax:50, dmg:12, crit:10, regen:2}
+];
+
+const BANK_DEALS = [
+    {label:'Вклад 1 час', icon:'🕐', dur:3600, rate:0.01},
+    {label:'Вклад 2 часа', icon:'⏳', dur:7200, rate:0.02},
+    {label:'Вклад 6 часов', icon:'🏺', dur:21600, rate:0.06},
+    {label:'Вклад 12 часов', icon:'🌙', dur:43200, rate:0.12},
+    {label:'Вклад 24 часа', icon:'💼', dur:86400, rate:0.24}
+];
+
+const TATTOOS = [
+    {id:'tat_star', name:'Звезда вора', icon:'⭐', price:500},
+    {id:'tat_tear', name:'Слеза', icon:'💧', price:700},
+    {id:'tat_spider', name:'Паук', icon:'🕷️', price:900},
+    {id:'tat_cross', name:'Купола', icon:'⛪', price:1200},
+    {id:'tat_skull', name:'Череп', icon:'💀', price:1500},
+    {id:'tat_rose', name:'Роза', icon:'🌹', price:2000},
+    {id:'tat_dragon', name:'Дракон', icon:'🐉', price:3000},
+    {id:'tat_crown', name:'Корона', icon:'👑', price:5000}
+];
+
+const HAIRSTYLES = [
+    {id:'hair_short', name:'Ежик', icon:'✂️', price:300},
+    {id:'hair_razor', name:'Под ноль', icon:'🪒', price:400},
+    {id:'hair_mohawk', name:'Ирокез', icon:'🦅', price:800},
+    {id:'hair_long', name:'Длинные волосы', icon:'💇', price:1000},
+    {id:'hair_quiff', name:'Кок', icon:'🎩', price:1500},
+    {id:'hair_dread', name:'Дреды', icon:'🧟', price:2500},
+    {id:'hair_pompadour', name:'Помпадур', icon:'💈', price:3500},
+    {id:'hair_gold', name:'Золотая укладка', icon:'✨', price:5000}
+];
+
+const DAILY_REWARDS = [50,100,150,200,250,350,500,750,1000];
+
+const DEFAULT_PLAYER = {
+    nick:'Братан',
+    nickSet:false,
+    level:1, exp:0, expNext:100,
+    hp:1000, energy:250,
+    credits:1000, bucks:0,
+    ap:5,
+    apStats:{dmg:0, armor:0, hp:0, dodge:0, crit:0},
+    cls:'defender',
+    classCd:{defender:0, tank:0, rogue:0},
+    classShield:{amt:0, until:0},
+    classRogue:{dodge:0, crit:0, until:0},
+    equipped:{}, inventory:[], cosmetics:[],
+    location:'yard', robActive:false, robStage:0, robberyUntil:0, robEvents:[],
+    districtControl:45,
+    ownedCars:[],
+    upgrades:{dmg:0,hp:0,dodge:0,crit:0,energy:0},
+    crew:{thug:0,driver:0,lookout:0,foreman:0},
+    crewRent:{id:null, until:0},
+    bank:{amount:0,until:0,rate:0,label:''},
+    bossUntil:0,
+    lastSeen:Date.now(),
+    dailyStreak:0, dailyLast:'',
+    buffs:{dmg:{amt:0,until:0}, armor:{amt:0,until:0}, crit:{amt:0,until:0}, dodge:{amt:0,until:0}},
+    zoom:100,
+    casinoLog:[]
+};
+
+// ============================ СОСТОЯНИЕ ============================
+
+let player = JSON.parse(JSON.stringify(DEFAULT_PLAYER));
+let fight = null;
+let rolling = false;
+let currentScreen = 'main';
+let shopCat = 'weapon';
+let battleLog = [];
+let casinoBetVal = 50;
+
+// ============================ УТИЛИТЫ ============================
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function rand(a, b) { return a + Math.random() * (b - a); }
+function pct(cur, max) { return max > 0 ? Math.round(Math.max(0, cur) / max * 100) : 0; }
+function fmtTime(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    if (sec < 60) return sec + 'с';
+    const m = Math.floor(sec / 60);
+    if (m < 60) return m + 'м ' + (sec % 60) + 'с';
+    return Math.floor(m / 60) + 'ч ' + (m % 60) + 'м';
+}
+function findItem(id) { return Object.values(ITEMS).flat().find(i => i.id === id); }
+function statName(s) { return {dmg:'урон', hp:'ХП', dodge:'уклонение', crit:'крит', energy:'энергия'}[s] || s; }
+function buffActive(key) { return player.buffs[key] && Date.now() < player.buffs[key].until; }
+
+// ============================ РАСЧЁТ ХАРАКТЕРИСТИК ============================
+
+function carBonus() {
+    let best = null;
+    (player.ownedCars || []).forEach(id => {
+        const c = CARS.find(x => x.id === id);
+        if (c && (!best || c.price > best.price)) best = c;
+    });
+    return best || {id:null, name:'Пешком', icon:'🚶', energyMax:0, dmg:0, crit:0, regen:0};
+}
+
+function gearSum(stat) {
+    let s = 0;
+    Object.values(player.equipped).forEach(id => {
+        const itm = findItem(id);
+        if (itm && itm[stat]) s += itm[stat];
+    });
+    return s;
+}
+
+function apMul(stat) { return 1 + player.apStats[stat] / 100; }
+
+function maxHp() { return Math.round((1000 + (player.level - 1) * 100 + player.upgrades.hp * 25 + gearSum('hpBonus')) * apMul('hp')); }
+function maxEnergy() { return 250 + (player.level - 1) * 15 + (player.upgrades.energy || 0) * 10 + carBonus().energyMax; }
+function getDmg() {
+    let d = (20 + player.level * 3 + player.upgrades.dmg * 3 + gearSum('dmg') + carBonus().dmg) * apMul('dmg');
+    if (buffActive('dmg')) d += player.buffs.dmg.amt;
+    return Math.round(d);
+}
+function baseArmor() {
+    let a = gearSum('armor') * apMul('armor');
+    if (buffActive('armor')) a += player.buffs.armor.amt;
+    return a;
+}
+function getArmor() {
+    let a = baseArmor();
+    if (Date.now() < (player.classShield.until || 0)) a += player.classShield.amt;
+    return Math.round(a);
+}
+function baseDodge() {
+    let d = (gearSum('dodge') + player.upgrades.dodge * 2) * apMul('dodge');
+    if (buffActive('dodge')) d += player.buffs.dodge.amt;
+    return d;
+}
+function getDodge() {
+    let d = baseDodge();
+    if (Date.now() < (player.classRogue.until || 0)) d += player.classRogue.dodge;
+    return Math.round(d);
+}
+function baseCrit() {
+    let c = (gearSum('crit') + player.upgrades.crit * 2 + carBonus().crit) * apMul('crit');
+    if (buffActive('crit')) c += player.buffs.crit.amt;
+    return c;
+}
+function getCrit() {
+    let c = baseCrit();
+    if (Date.now() < (player.classRogue.until || 0)) c += player.classRogue.crit;
+    return Math.round(c);
+}
+function crewPerMin() {
+    let inc = player.crew.thug * 1 + player.crew.driver * 3 + player.crew.lookout * 8 + player.crew.foreman * 13;
+    if (player.crewRent.id && player.crewRent.until > Date.now()) {
+        const rc = CREW.find(x => x.id === player.crewRent.id);
+        if (rc) inc += rc.income;
+    }
+    return inc;
+}
+function regenPerSec() { return (1 + carBonus().regen * 0.4) / 15; }
+function upgradeCost(u) { return Math.round(u.base * Math.pow(u.mult, player.upgrades[u.stat])); }
+
+// ============================ НАВИГАЦИЯ / МАСШТАБ ============================
+
+function openScreen(id) {
+    currentScreen = id;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    window.scrollTo(0, 0);
+    refresh();
+}
+function goMain() { openScreen('main'); }
+
+function setZoom(z) {
+    player.zoom = clamp(z, 60, 160);
+    document.documentElement.style.zoom = (player.zoom / 100);
+    document.getElementById('zoomVal').textContent = player.zoom + '%';
+    saveGame();
+}
+function applyZoom() {
+    document.documentElement.style.zoom = (player.zoom || 100) / 100;
+    document.getElementById('zoomVal').textContent = (player.zoom || 100) + '%';
+}
+
+// ============================ СОХРАНЕНИЕ / ЗАГРУЗКА ============================
+
+function saveGame() {
+    player.lastSeen = Date.now();
+    try { localStorage.setItem('bratva6_save', JSON.stringify(player)); } catch(e) {}
+}
+
+function loadGame() {
+    const def = JSON.parse(JSON.stringify(DEFAULT_PLAYER));
+    let data = null;
+    try { data = localStorage.getItem('bratva6_save'); } catch(e) {}
+    if (data) {
+        try { player = Object.assign(def, JSON.parse(data)); } catch(e) { player = def; }
+    } else {
+        player = def;
+    }
+    player.inventory = player.inventory || [];
+    player.equipped = player.equipped || {};
+    player.upgrades = Object.assign({dmg:0,hp:0,dodge:0,crit:0,energy:0}, player.upgrades);
+    player.crew = Object.assign({thug:0,driver:0,lookout:0,foreman:0}, player.crew);
+    player.crewRent = player.crewRent || {id:null, until:0};
+    player.bank = player.bank || {amount:0,until:0,rate:0,label:''};
+    player.ownedCars = player.ownedCars || [];
+    player.apStats = Object.assign({dmg:0, armor:0, hp:0, dodge:0, crit:0}, player.apStats);
+    player.buffs = Object.assign({dmg:{amt:0,until:0}, armor:{amt:0,until:0}, crit:{amt:0,until:0}, dodge:{amt:0,until:0}}, player.buffs);
+    player.robTarget = player.robTarget || 0;
+    player.robActive = !!player.robActive;
+    player.robStage = player.robStage || 0;
+    player.robberyUntil = player.robberyUntil || 0;
+    player.robEvents = player.robEvents || [];
+    player.cosmetics = player.cosmetics || [];
+    player.nickSet = !!player.nickSet;
+    player.cls = player.cls || 'defender';
+    player.classCd = Object.assign({defender:0, tank:0, rogue:0}, player.classCd);
+    player.classShield = player.classShield || {amt:0, until:0};
+    player.classRogue = player.classRogue || {dodge:0, crit:0, until:0};
+    player.nick = player.nick || 'Братан';
+    player.zoom = player.zoom || 100;
+    player.casinoLog = player.casinoLog || [];
+    applyOffline();
+    applyZoom();
+    try { refresh(); } catch (e) { try { renderMain(); } catch (e2) {} }
+    if (!data) {
+        addToChat('[Система] Добро пожаловать, братан! На счету 1000 кредитов и 5 очков действия. Кнопка «Помощь» — внизу.');
+        addToChat('[Система] Трать очки действия в «Персонаже»: каждое очко даёт +1% к характеристике.');
+    }
+    setInterval(tick, 1000);
+    setInterval(saveGame, 30000);
+}
+
+function applyOffline() {
+    const now = Date.now();
+    const away = clamp(Math.max(0, (now - (player.lastSeen || now)) / 1000), 0, 12 * 3600);
+    player.lastSeen = now;
+    if (away < 20) return;
+    let log = '[Оффлайн] Тебя не было ' + fmtTime(away) + '. ';
+    const enGain = Math.floor(regenPerSec() * away);
+    if (enGain > 0) { player.energy = Math.min(maxEnergy(), player.energy + enGain); log += 'Энергия +' + enGain + '. '; }
+    const inc = crewPerMin() * away / 60;
+    if (inc > 1) { const g = Math.floor(inc); player.credits += g; log += 'Доход банды +' + g + ' кр.'; }
+    addToChat(log);
+    if (player.bank.amount && player.bank.until <= now) claimBank(true);
+}
+
+function resetGame() {
+    if (confirm('Сбросить весь прогресс? Это необратимо.')) {
+        try { localStorage.removeItem('bratva6_save'); } catch(e) {}
+        location.reload();
+    }
+}
+
+// ============================ ЧАТ ============================
+
+function addToChat(text) {
+    const box = document.getElementById('chatBox');
+    box.innerHTML += text + '<br>';
+    box.scrollTop = box.scrollHeight;
+}
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    if (input.value.trim()) {
+        addToChat('[' + player.nick + '] ' + input.value);
+        input.value = '';
+    }
+}
+
+// ============================ ОБНОВЛЕНИЕ UI ============================
+
+function refresh() {
+    updateHud();
+    renderMain();
+    switch (currentScreen) {
+        case 'character': renderCharacter(); break;
+        case 'robbery': renderRobbery(); break;
+        case 'brawl': renderBrawl(); break;
+        case 'boss': renderBoss(); break;
+        case 'work': renderWork(); break;
+        case 'bank': renderBank(); break;
+        case 'crew': renderCrew(); break;
+        case 'garage': renderGarage(); break;
+        case 'casino': renderCasino(); break;
+        case 'shop': renderShop(); break;
+        case 'inventory': renderInventory(); break;
+        case 'help': renderHelp(); break;
+        case 'admin': renderAdmin(); break;
+    }
+}
+
+function updateHud() {
+    document.getElementById('hudLvl').textContent = player.level;
+    document.getElementById('hudXp').style.width = pct(player.exp, player.expNext) + '%';
+    document.getElementById('hudXpTxt').textContent = Math.floor(player.exp) + '/' + player.expNext;
+    document.getElementById('hudHp').style.width = pct(player.hp, maxHp()) + '%';
+    document.getElementById('hudHpTxt').textContent = Math.floor(player.hp) + '/' + maxHp();
+    document.getElementById('hudEn').style.width = pct(player.energy, maxEnergy()) + '%';
+    document.getElementById('hudEnTxt').textContent = Math.floor(player.energy) + '/' + maxEnergy();
+    document.getElementById('hudAp').textContent = player.ap;
+    document.getElementById('hudCred').textContent = Math.floor(player.credits);
+    document.getElementById('hudBucks').textContent = player.bucks;
+    document.getElementById('hudIncome').textContent = '+' + crewPerMin() + '/мин';
+    let badges = '';
+    if (buffActive('dmg')) badges += '<span class="buff-badge">💢 урон +' + player.buffs.dmg.amt + ' ' + fmtTime((player.buffs.dmg.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('armor')) badges += '<span class="buff-badge">🧱 броня +' + player.buffs.armor.amt + ' ' + fmtTime((player.buffs.armor.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('crit')) badges += '<span class="buff-badge">🎯 крит +' + player.buffs.crit.amt + ' ' + fmtTime((player.buffs.crit.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('dodge')) badges += '<span class="buff-badge">💨 уклонение +' + player.buffs.dodge.amt + ' ' + fmtTime((player.buffs.dodge.until - Date.now()) / 1000) + '</span>';
+    if (Date.now() < (player.classShield.until || 0)) badges += '<span class="buff-badge">' + SQ_SHIELD + ' щит +' + player.classShield.amt + ' ' + fmtTime((player.classShield.until - Date.now()) / 1000) + '</span>';
+    if (Date.now() < (player.classRogue.until || 0)) badges += '<span class="buff-badge">💨 уворот +' + player.classRogue.dodge + '% / 🎯 +' + player.classRogue.crit + '% ' + fmtTime((player.classRogue.until - Date.now()) / 1000) + '</span>';
+    document.getElementById('buffBadges').innerHTML = badges;
+}
+
+// ============================ ГЛАВНАЯ (КАРТОЧКИ) ============================
+
+function renderMain() {
+    const grid = document.getElementById('mainGrid');
+    const bossLeft = player.bossUntil - Date.now();
+    const cards = [
+        {scr:'character', icon:'👤', title:'Персонаж', sub:'<b class="green">' + player.nick + '</b><br>Уровень ' + player.level + ' • ' + classInfo().icon + ' ' + classInfo().name + '<br>Очки действия: <b class="purple">' + player.ap + '</b>', open:'Профиль и прокачка'},
+        {scr:'brawl', icon:'🥊', title:'Разборки', sub:'Контроль: <b class="green">' + Math.floor(player.districtControl) + '%</b><br>Противники появляются с уровнем', open:'Устроить разборку'},
+        {scr:'boss', icon:'👑', title:'Босс', sub: fight && fight.isBoss ? 'Идет бой!' : (bossLeft > 0 ? 'Перерыв: <span class="cd">' + fmtTime(bossLeft / 1000) + '</span>' : '<span class="green">Боссы готовы к бою</span>'), open:'Набежать на босса'},
+        {scr:'robbery', icon:'🤝', title:'Связи', sub: (player.robberyUntil - Date.now()) > 0 ? 'Перерыв: <span class="cd">' + fmtTime((player.robberyUntil - Date.now()) / 1000) + '</span><br>Договариваться можно 1 раз в час' : 'Цепочка из 10 целей<br>Шанс каждого 75% • Старт: 20 эн.', open:'Начать переговоры'},
+        {scr:'work', icon:'💼', title:'Подработка', sub:'Курьер, грузчик, охранник<br>Задания дешевле по энергии', open:'Найти работу'},
+        {scr:'crew', icon:'🏢', title:'Бизнес', sub:'Доход: <b class="green">+' + crewPerMin() + ' кр/мин</b><br>Работники трудятся даже в оффлайне', open:'Нанять работников'},
+        {scr:'shop', icon:'🛒', title:'Магазин', sub:'Кредитов: <b class="gold">' + Math.floor(player.credits) + '</b><br>Оружие, броня, бустеры', open:'Открыть магазин'},
+        {scr:'bank', icon:'🏦', title:'Банк', sub: player.bank.amount > 0 ? 'Вклад: <b class="gold">' + player.bank.amount + ' кр</b>' : 'Вклады от 8% до 25%', open:'Вложить кредиты'},
+        {scr:'casino', icon:'🎰', title:'Казино', sub:'Кости и орлянка<br>Джекпот на двух шестерках', open:'Сыграть'}
+    ];
+    grid.innerHTML = cards.map(c =>
+        '<div class="card" onclick="openScreen(\'' + c.scr + '\')">' +
+            '<div class="card-icon">' + c.icon + '</div>' +
+            '<div class="card-title">' + c.title + '</div>' +
+            '<div class="card-sub">' + c.sub + '</div>' +
+            '<div class="card-open">' + c.open + ' &#8594;</div>' +
+        '</div>'
+    ).join('');
+}
+
+function slotBox(slot, label, left) {
+    const id = player.equipped[slot];
+    const itm = id ? findItem(id) : null;
+    const side = left ? 'left' : 'right';
+    if (!itm) {
+        return '<div class="slot"><span class="sl-ico">➖</span><span><span class="sl-name">' + label + '</span><br><span class="sl-empty">Пусто</span></span></div>';
+    }
+    return '<div class="slot" title="Клик — подробности предмета">' +
+        '<span class="sl-ico" style="cursor:pointer;" onclick="openItemModal(\'' + id + '\')">' + itm.icon + '</span>' +
+        '<span style="flex:1;cursor:pointer;" onclick="openItemModal(\'' + id + '\')"><b>' + itm.name + '</b><br><span class="sl-name">' + label + '</span></span>' +
+        '<button class="unequip-btn" title="Снять" onclick="unequipSlot(\'' + slot + '\')">✖</button>' +
+    '</div>';
+}
+
+function openItemModal(id) {
+    const itm = findItem(id);
+    if (!itm) return;
+    let rows = '<div class="mi-ico">' + itm.icon + '</div><h3>' + itm.name + '</h3>';
+    rows += '<div class="mi-row"><span>Слот</span><b>' + (itm.slot || '—') + '</b></div>';
+    rows += '<div class="mi-row"><span>Цена</span><b>' + itm.price + ' кр.</b></div>';
+    if (itm.dmg) rows += '<div class="mi-row"><span>Урон</span><b>+' + itm.dmg + '</b></div>';
+    if (itm.armor) rows += '<div class="mi-row"><span>Броня</span><b>+' + itm.armor + '</b></div>';
+    if (itm.dodge) rows += '<div class="mi-row"><span>Уклонение</span><b>+' + itm.dodge + '%</b></div>';
+    if (itm.crit) rows += '<div class="mi-row"><span>Крит</span><b>+' + itm.crit + '%</b></div>';
+    if (itm.hpBonus) rows += '<div class="mi-row"><span>Здоровье</span><b>+' + itm.hpBonus + '</b></div>';
+    if (itm.heal) rows += '<div class="mi-row"><span>Лечение</span><b>+' + itm.heal + ' HP</b></div>';
+    if (itm.energy) rows += '<div class="mi-row"><span>Энергия</span><b>+' + itm.energy + '</b></div>';
+    if (itm.buff) rows += '<div class="mi-row"><span>Буст</span><b>+' + itm.buffAmt + ' на ' + itm.buffDur + 'с</b></div>';
+    rows += '<button class="action-btn good" style="margin-top:12px;" onclick="unequipSlot(\'' + itm.slot + '\');closeItemModal();">🎽 Снять</button>';
+    rows += '<button class="action-btn" onclick="closeItemModal()">Закрыть</button>';
+    document.getElementById('itemModalBox').innerHTML = rows;
+    document.getElementById('itemModal').classList.add('show');
+}
+function closeItemModal() {
+    document.getElementById('itemModal').classList.remove('show');
+}
+
+// ============================ ЭКРАН: ПЕРСОНАЖ ============================
+
+function renderCharacter() {
+    const body = document.getElementById('characterBody');
+    const cls = classInfo();
+    let html = '<div class="panel"><h3>👤 ' + player.nick + ' — ' + player.level + ' уровень • ' + cls.icon + ' ' + cls.name + '</h3>' +
+        '<div class="char-row">' +
+            '<div class="char-slots">' +
+                slotBox('head', 'Голова', true) +
+                slotBox('torso', 'Тело', true) +
+                slotBox('neck', 'Украшение', true) +
+            '</div>' +
+            '<div class="char-slots">' +
+                slotBox('right_hand', 'Руки', false) +
+                slotBox('legs', 'Ноги', false) +
+                slotBox('feet', 'Обувь', false) +
+            '</div>' +
+        '</div></div>';
+
+    const ownedTats = TATTOOS.filter(t => player.cosmetics.includes(t.id));
+    const ownedHairs = HAIRSTYLES.filter(h => player.cosmetics.includes(h.id));
+    const cb = carBonus();
+    const dmgBase = 20 + player.level * 3;
+    const dmgUpg = player.upgrades.dmg * 3;
+    const dmgGear = gearSum('dmg');
+    const dmgCar = cb.dmg;
+    const dmgMult = apMul('dmg');
+    const dmgBuff = buffActive('dmg') ? player.buffs.dmg.amt : 0;
+    const hpBase = 1000 + (player.level - 1) * 100;
+    const hpUpg = player.upgrades.hp * 25;
+    const hpGear = gearSum('hpBonus');
+    const hpMult = apMul('hp');
+    const enBase = 250 + (player.level - 1) * 15;
+    const enUpg = player.upgrades.energy * 10;
+    const enCar = cb.energyMax;
+    const armorGear = gearSum('armor');
+    const armorMult = apMul('armor');
+    const armorBuff = buffActive('armor') ? player.buffs.armor.amt : 0;
+    const armorShield = Date.now() < (player.classShield.until || 0) ? player.classShield.amt : 0;
+    const dodgeGear = gearSum('dodge');
+    const dodgeUpg = player.upgrades.dodge * 2;
+    const dodgeMult = apMul('dodge');
+    const dodgeBuff = buffActive('dodge') ? player.buffs.dodge.amt : 0;
+    const dodgeClass = Date.now() < (player.classRogue.until || 0) ? player.classRogue.dodge : 0;
+    const critGear = gearSum('crit');
+    const critUpg = player.upgrades.crit * 2;
+    const critCar = cb.crit;
+    const critMult = apMul('crit');
+    const critBuff = buffActive('crit') ? player.buffs.crit.amt : 0;
+    const critClass = Date.now() < (player.classRogue.until || 0) ? player.classRogue.crit : 0;
+    const statChip = (title, parts) =>
+        '<div class="stat-chip">' + title + '<br><span style="color:#64748b;font-size:9px;line-height:1.5;">' + parts.filter(Boolean).join(' • ') + '</span></div>';
+    const prcBonus = m => m > 1 ? 'бонус: +' + Math.round((m - 1) * 100) + '% (очки/тату/прически)' : '';
+    html += '<div class="panel"><h3>📊 Характеристики</h3>' +
+        '<div class="hint" style="margin-bottom:6px;">Бонус в характеристиках делится так: <b class="green">очки действия</b> дают +1% за вложенное очко, а каждая купленная <b class="green">тату/прическа</b> — +5% к выбранной при покупке характеристике (см. «бонус (очки/тату/прически)»).</div>' +
+        '<div class="stats-grid">' +
+        statChip('❤️ Здоровье <b>' + Math.floor(player.hp) + '/' + maxHp() + '</b>',
+            ['родной: ' + hpBase, hpUpg ? 'качалка: +' + hpUpg : '', hpGear ? 'экип: +' + hpGear : '', prcBonus(hpMult)]) +
+        statChip('⚡ Энергия <b>' + Math.floor(player.energy) + '/' + maxEnergy() + '</b>',
+            ['родная: ' + enBase, enUpg ? 'качалка: +' + enUpg : '', enCar ? 'машина: +' + enCar : '']) +
+        statChip('💢 Урон <b>' + getDmg() + '</b>',
+            ['родной: ' + dmgBase, dmgUpg ? 'качалка: +' + dmgUpg : '', dmgGear ? 'экип: +' + dmgGear : '', dmgCar ? 'машина: +' + dmgCar : '', prcBonus(dmgMult), dmgBuff ? 'буст: +' + dmgBuff : '']) +
+        statChip('🛡️ Броня <b>' + getArmor() + '</b>',
+            ['родная: 0', armorGear ? 'экип: +' + armorGear : '', prcBonus(armorMult), armorBuff ? 'буст: +' + armorBuff : '', armorShield ? 'щит: +' + armorShield : '']) +
+        statChip('💨 Уклонение <b>' + getDodge() + '%</b>',
+            ['родное: 0', dodgeGear ? 'экип: +' + dodgeGear : '', dodgeUpg ? 'качалка: +' + dodgeUpg : '', prcBonus(dodgeMult), dodgeBuff ? 'буст: +' + dodgeBuff : '', dodgeClass ? 'уворот: +' + dodgeClass : '']) +
+        statChip('🎯 Крит <b>' + getCrit() + '%</b>',
+            ['родной: 0', critGear ? 'экип: +' + critGear : '', critUpg ? 'качалка: +' + critUpg : '', critCar ? 'машина: +' + critCar : '', prcBonus(critMult), critBuff ? 'буст: +' + critBuff : '', critClass ? 'уворот: +' + critClass : '']) +
+        statChip('🏢 Доход <b>+' + crewPerMin() + ' кр/мин</b>',
+            ['грузчик: ' + player.crew.thug + '/мин', 'таксопарк: ' + player.crew.driver * 3 + '/мин', 'офис: ' + player.crew.lookout * 8 + '/мин', 'завод: ' + player.crew.foreman * 13 + '/мин']) +
+        statChip('🚗 Тачка <b>' + cb.name + '</b>',
+            cb.id ? ['энергия: +' + cb.energyMax, cb.dmg ? 'урон: +' + cb.dmg : '', cb.crit ? 'крит: +' + cb.crit + '%' : '', 'реген: +' + cb.regen] : ['бонусов нет']) +
+        (ownedTats.length ? ownedTats.map(t => '<div class="stat-chip">💉 Тату: ' + t.name + ' <b>' + t.icon + '</b></div>').join('') : '') +
+        (ownedHairs.length ? ownedHairs.map(h => '<div class="stat-chip">💈 Прическа: ' + h.name + ' <b>' + h.icon + '</b></div>').join('') : '') +
+    '</div></div>';
+
+    html += '<div class="panel"><h3>⭐ Очки действия <b class="purple">' + player.ap + '</b></h3>' +
+        '<div class="hint">Каждое очко даёт +1% к характеристике. За каждый уровень +1 очко действия.</div>' +
+        AP_STATS.map(s => {
+            const invested = player.apStats[s.key];
+            return '<div class="fight-item"><div><strong>' + s.icon + ' ' + s.name + '</strong><br><span class="hint">Вложено: ' + invested + ' • Бонус: +' + invested + '%</span></div>' +
+                '<button class="fight-start" onclick="spendAP(\'' + s.key + '\')"' + (player.ap <= 0 ? ' disabled' : '') + '>Вложить (+1%)</button></div>';
+        }).join('') +
+    '</div>';
+
+    html += '<div class="panel"><h3>🎭 Класс: ' + cls.icon + ' ' + cls.name + '</h3>' +
+        '<div class="fight-actions">' +
+            CLASSES.map(c =>
+                '<button class="action-btn' + (player.cls === c.id ? ' good' : '') + '" onclick="setClass(\'' + c.id + '\')">' + c.icon + ' ' + c.name + '</button>'
+            ).join('') +
+        '</div>' +
+        '<div class="hint" style="margin-top:6px;">' + cls.desc + '</div>' +
+    '</div>';
+
+    html += '<div class="panel"><h3>✏️ Ник персонажа</h3>' +
+        '<div class="hint" style="margin-bottom:6px;">' + (player.nickSet ? 'Смена ника стоит 50 баксов.' : 'Первая смена ника — бесплатно.') + '</div>' +
+        '<input class="inp" id="nickInput" maxlength="16" value="' + player.nick.replace(/"/g, '&quot;') + '" />' +
+        (player.nickSet
+            ? '<button class="action-btn good" onclick="saveNick()"' + (player.bucks < 50 ? ' disabled' : '') + '>Сменить ник — 50$</button>'
+            : '<button class="action-btn good" onclick="saveNick()">Сохранить ник</button>') +
+        '</div>';
+
+    html += '<button class="action-btn" onclick="openScreen(\'inventory\')"><span>🎒</span> Сумка</button>';
+    html += '<button class="action-btn good" onclick="saveGame()"><span>💾</span> Сохранить прогресс</button>';
+    body.innerHTML = html;
+}
+
+function saveNick() {
+    const inp = document.getElementById('nickInput');
+    if (!inp) return;
+    const v = inp.value.trim().slice(0, 16);
+    if (!v) return;
+    if (player.nickSet && player.bucks < 50) { addToChat('[Ошибка] Смена ника стоит 50 баксов.'); return; }
+    if (player.nickSet) player.bucks -= 50;
+    const costTxt = player.nickSet ? ' (стоимость 50 баксов)' : '';
+    player.nick = v;
+    player.nickSet = true;
+    addToChat('[Система] Ник изменен на «' + v + '»' + costTxt + '.');
+    refresh();
+    saveGame();
+}
+
+function spendAP(key) {
+    if (player.ap <= 0) { addToChat('[Ошибка] Нет очков действия.'); return; }
+    if (!AP_STATS.find(s => s.key === key)) return;
+    player.ap--;
+    player.apStats[key]++;
+    const name = statName(key);
+    addToChat('[Персонаж] Очко вложено в «' + name + '»: +1%.');
+    refresh();
+    saveGame();
+}
+// ============================ ЭКРАН: СВЯЗИ ============================
+
+const ROBBERY_COOLDOWN = 3600000;
+const ROBBERY_SUCCESS = 75;
+
+function robLog(txt) {
+    player.robEvents.unshift({t: Date.now(), txt: txt});
+    if (player.robEvents.length > 20) player.robEvents.length = 20;
+}
+
+function renderRobbery() {
+    const body = document.getElementById('robberyBody');
+    const left = player.robberyUntil - Date.now();
+    const blocked = left > 0;
+    let html = '<div class="panel"><h3>🤝 Связи</h3>' +
+        '<div class="hint">Цепочка из ' + ROBBERY_CHAIN.length + ' переговоров. Шанс успеха каждого этапа — <b class="green">75%</b>. Старт цепочки: 20 энергии. При провале — утешительные 10% награды.</div>' +
+        (blocked ? '<div style="margin-top:6px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span>До следующего захода: <span class="cd">' + fmtTime(left / 1000) + '</span></span>' +
+            '<button class="action-btn good" style="width:auto;margin:0;padding:6px 10px;flex-shrink:0;" onclick="skipRobberyCooldown()"' + (player.bucks < 1 ? ' disabled' : '') + '>Открыть связи за 1$</button></div>' : '') +
+    '</div>';
+
+    if (player.robActive) {
+        const st = clamp(player.robStage || 0, 0, ROBBERY_CHAIN.length - 1);
+        const t = ROBBERY_CHAIN[st];
+        html += '<div class="panel"><h3>🎯 Этап ' + (st + 1) + ' из ' + ROBBERY_CHAIN.length + '</h3>' +
+            '<div class="fight-item"><div><span class="fi-ico">' + t.icon + '</span> <strong>' + t.name + '</strong><br><span class="hint">Награда: ' + ((st + 1) * 100) + ' кр • +' + ((st + 1) * 100) + ' XP • шанс успеха 75%</span></div></div>' +
+            '<button class="action-btn" onclick="robStage()">🤝 Договориться</button>' +
+            '<button class="action-btn danger" onclick="cancelRobbery()">🏃 Бросить цепочку</button>' +
+        '</div>';
+    } else {
+        html += '<div class="panel"><h3>🎯 Цепочка целей</h3>' +
+            ROBBERY_CHAIN.map((rt, i) =>
+                '<div class="fight-item"><div><span class="fi-ico">' + rt.icon + '</span> <strong>Этап ' + (i + 1) + ': ' + rt.name + '</strong><br><span class="hint">' + ((i + 1) * 100) + ' кр • +' + ((i + 1) * 100) + ' XP</span></div></div>'
+            ).join('') +
+        '</div>' +
+        '<button class="action-btn" onclick="startRobbery()"' + (blocked ? ' disabled title="Связи доступны раз в час"' : '') + (player.energy < 20 ? ' disabled' : '') + '>🚀 Начать переговоры (20 эн.)</button>';
+    }
+
+    if (player.robActive && player.robEvents.length) {
+        html += '<div class="panel"><h3>📋 События</h3><div style="font-size:11px;line-height:1.8;max-height:160px;overflow-y:auto;">' +
+            player.robEvents.map(ev =>
+                '<div><span class="hint" style="color:#64748b;">' + new Date(ev.t).toLocaleTimeString('ru-RU') + '</span> ' + ev.txt + '</div>'
+            ).join('') +
+        '</div></div>';
+    }
+
+    body.innerHTML = html;
+}
+
+function startRobbery() {
+    if (player.robActive) return;
+    if (player.robberyUntil > Date.now()) { addToChat('[Ошибка] Связи доступны раз в час.'); return; }
+    if (player.energy < 20) { addToChat('[Ошибка] Нужно 20 энергии.'); return; }
+    player.energy -= 20;
+    player.robActive = true;
+    player.robStage = 0;
+    player.robEvents = [];
+    robLog('🚀 Начата цепочка из ' + ROBBERY_CHAIN.length + ' переговоров. Шанс успеха каждого этапа: 75%.');
+    addToChat('[Связи] Цепочка из ' + ROBBERY_CHAIN.length + ' переговоров начата! Шанс успеха каждого этапа: 75%.');
+    refresh();
+    saveGame();
+}
+
+function skipRobberyCooldown() {
+    if (player.robberyUntil <= Date.now()) { addToChat('[Система] Связи уже доступны.'); return; }
+    if (player.bucks < 1) { addToChat('[Ошибка] Нужен хотя бы 1 бакс.'); return; }
+    player.bucks -= 1;
+    player.robberyUntil = 0;
+    addToChat('[Система] Перерыв снят за 1 бакс. Связи открыты!');
+    refresh();
+    saveGame();
+}
+
+function robStage() {
+    if (!player.robActive) return;
+    const st = clamp(player.robStage || 0, 0, ROBBERY_CHAIN.length - 1);
+    const t = ROBBERY_CHAIN[st];
+    if (!t) return;
+    if (Math.random() * 100 < ROBBERY_SUCCESS) {
+        const r = (st + 1) * 100;
+        const e = (st + 1) * 100;
+        player.credits += r;
+        player.exp += e;
+        robLog('✅ Этап ' + (st + 1) + '/' + ROBBERY_CHAIN.length + ': договорённость с «' + t.name + '» (+' + r + ' кр, +' + e + ' XP).');
+        addToChat('[Успех] Этап ' + (st + 1) + '/' + ROBBERY_CHAIN.length + ': договорённость с «' + t.name + '»: +' + r + ' кр, +' + e + ' XP.');
+        player.robStage++;
+        if (player.robStage >= ROBBERY_CHAIN.length) {
+            player.robActive = false;
+            player.robberyUntil = Date.now() + ROBBERY_COOLDOWN;
+            robLog('🏆 Вся цепочка из ' + ROBBERY_CHAIN.length + ' договорённостей пройдена!');
+            addToChat('[СВЯЗИ] Вся цепочка из ' + ROBBERY_CHAIN.length + ' договорённостей пройдена!');
+        }
+    } else {
+        const r = Math.round((st + 1) * 100 * 0.1);
+        const e = Math.round((st + 1) * 100 * 0.1);
+        player.credits += r;
+        player.exp += e;
+        const d = Math.floor(rand(20, 50));
+        takeDamage(d);
+        player.robActive = false;
+        player.robberyUntil = Date.now() + ROBBERY_COOLDOWN;
+        robLog('❌ Провал на этапе ' + (st + 1) + ' («' + t.name + '»). Утешительный приз: +' + r + ' кр, +' + e + ' XP.');
+        addToChat('[Провал] Не договорились на этапе ' + (st + 1) + ' («' + t.name + '»). Утешительный приз: +' + r + ' кр, +' + e + ' XP. Урон -' + d + ' HP.');
+    }
+    checkLevelUp();
+    refresh();
+    saveGame();
+}
+
+function cancelRobbery() {
+    if (!player.robActive) return;
+    player.robActive = false;
+    robLog('🏃 Цепочка прервана. Энергия за старт не возвращается.');
+    addToChat('[Связи] Ты бросил переговоры. Энергия за старт не возвращается.');
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: РАЗБОРКИ ============================
+
+function brawlScale(b) {
+    return 1 + Math.max(0, player.level - (b.minLevel || 1)) * 0.05;
+}
+function brawlHp(b) { return Math.floor(b.hp * brawlScale(b)); }
+function brawlDmg(b) { return Math.floor(b.dmg * brawlScale(b)); }
+function brawlReward(b) { return Math.floor(b.reward * brawlScale(b)); }
+function brawlExp(b) { return Math.floor(b.exp * brawlScale(b)); }
+
+function renderBrawl() {
+    const body = document.getElementById('brawlBody');
+    if (fight) { body.innerHTML = battleHTML(); return; }
+    body.innerHTML = '<div class="panel"><h3>🥊 Разборки</h3>' +
+        '<div class="hint">Противники открываются по мере роста уровня. Характеристики растут с каждым уровнем (+5% за уровень).</div></div>' +
+        BRAWLS.map(b => {
+            const locked = player.level < b.minLevel;
+            return '<div class="fight-item"><div style="cursor:pointer;" onclick="openBrawlModal(\'' + b.id + '\')"><span class="fi-ico">' + b.icon + '</span> <strong>' + b.name + '</strong>' + (locked ? ' <span class="hint">(нужен ' + b.minLevel + ' ур.)</span>' : '') + '<br><span class="hint">HP ' + brawlHp(b) + ' • урон ' + brawlDmg(b) + ' • награда ' + brawlReward(b) + ' кр • +' + brawlExp(b) + ' XP' + (locked ? '' : ' <span style="color:#4ade80;">(x' + brawlScale(b).toFixed(2) + ')</span>') + '</span></div>' +
+                '<button class="fight-start" onclick="startFight(\'' + b.id + '\')"' + (locked ? ' disabled title="Нужен ' + b.minLevel + ' уровень"' : '') + (player.energy < b.cost ? ' disabled' : '') + '>Бой (' + b.cost + ' эн.)</button></div>';
+        }).join('');
+}
+
+function openBrawlModal(id) {
+    const b = BRAWLS.find(x => x.id === id);
+    if (!b) return;
+    const locked = player.level < b.minLevel;
+    let rows = '<div class="mi-ico">' + b.icon + '</div><h3>' + b.name + '</h3>';
+    rows += '<div class="mi-row"><span>Уровень для боя</span><b>' + b.minLevel + '</b></div>';
+    rows += '<div class="mi-row"><span>Здоровье</span><b>' + brawlHp(b) + ' HP</b></div>';
+    rows += '<div class="mi-row"><span>Урон</span><b>' + brawlDmg(b) + '</b></div>';
+    rows += '<div class="mi-row"><span>Стоимость боя</span><b>' + b.cost + ' эн.</b></div>';
+    rows += '<div class="mi-row"><span>Награда</span><b>' + brawlReward(b) + ' кр.</b></div>';
+    rows += '<div class="mi-row"><span>Опыт</span><b>+' + brawlExp(b) + ' XP</b></div>';
+    rows += '<div class="mi-row"><span>Множитель уровня</span><b>x' + brawlScale(b).toFixed(2) + '</b></div>';
+    if (locked) rows += '<div class="hint" style="margin-top:8px;text-align:center;color:#f59e0b;">Нужен ' + b.minLevel + ' уровень!</div>';
+    rows += '<button class="action-btn good" style="margin-top:12px;" onclick="startFight(\'' + b.id + '\');closeItemModal();"' + (locked ? ' disabled' : '') + '>🥊 В бой (' + b.cost + ' эн.)</button>';
+    rows += '<button class="action-btn" onclick="closeItemModal()">Закрыть</button>';
+    document.getElementById('itemModalBox').innerHTML = rows;
+    document.getElementById('itemModal').classList.add('show');
+}
+
+// ============================ БОЙ ============================
+
+function battleHTML() {
+    const eHpPct = pct(fight.hp, fight.maxHp);
+    const pHpPct = pct(player.hp, maxHp());
+    const last = battleLog.slice(-8).join('<br>');
+    return '<div class="panel"><h3>⚔️ Бой с ' + fight.icon + ' ' + fight.name + '</h3>' +
+        '<div style="font-size:11px;"><strong>' + fight.name + '</strong> <span class="hint">' + fight.hp + '/' + fight.maxHp + ' HP</span></div>' +
+        '<div class="pbar" style="width:100%;"><div class="pfill hp" style="width:' + eHpPct + '%;"></div></div>' +
+        '<div style="font-size:11px;margin-top:6px;">Ты: <strong>' + Math.floor(player.hp) + '/' + maxHp() + ' HP</strong> • Энергия: ' + Math.floor(player.energy) + '</div>' +
+        '<div class="pbar" style="width:100%;"><div class="pfill en" style="width:' + pHpPct + '%;"></div></div>' +
+        '<div class="fight-actions">' +
+            '<button class="action-btn" onclick="fightAttack(false)">🥊 Удар</button>' +
+            '<button class="action-btn" onclick="fightAttack(true)"' + (player.energy < 10 ? ' disabled' : '') + '>🎯 Точный (10 эн.)</button>' +
+            '<button class="action-btn" onclick="fightHeal()">💊 Аптечка</button>' +
+            '<button class="action-btn danger" onclick="fleeFight()">🏃 Отступить</button>' +
+            '<button class="action-btn good" onclick="classAbility()"' + ((player.classCd[classInfo().id] || 0) > Date.now() ? ' disabled' : '') + '>' + classAbilityLabel() + '</button>' +
+        '</div>' +
+        '<div class="battle-log">' + (last || 'Бой начался...') + '</div>' +
+    '</div>';
+}
+
+function startFight(id) {
+    if (fight) return;
+    let opp = BOSSES.find(x => x.id === id) || BRAWLS.find(x => x.id === id) || (id === 'boss' ? BOSSES[0] : null);
+    if (!opp) return;
+    if (player.level < (opp.minLevel || 0)) { addToChat('[Ошибка] Нужен ' + opp.minLevel + ' уровень.'); return; }
+    if (player.energy < opp.cost) { addToChat('[Ошибка] Нужно ' + opp.cost + ' энергии.'); return; }
+    player.energy -= opp.cost;
+    const isBoss = !!opp.isBoss;
+    const hp = isBoss ? opp.hp : brawlHp(opp);
+    const dmg = isBoss ? opp.dmg : brawlDmg(opp);
+    const reward = isBoss ? opp.reward : brawlReward(opp);
+    const exp = isBoss ? opp.exp : brawlExp(opp);
+    fight = {id: opp.id, name: opp.name, icon: opp.icon || '🥊', hp: hp, maxHp: hp, dmg: dmg, reward: reward, exp: exp, control: opp.control, isBoss: isBoss, dodge: opp.dodge || 0, crit: opp.crit || 0};
+    battleLog = [];
+    battleLog.push('Бой с ' + fight.name + ' начался!');
+    addToChat('[Бой] Драка с «' + opp.name + '» началась!');
+    refresh();
+    saveGame();
+}
+
+function fightAttack(precise) {
+    if (!fight) return;
+    if (precise) {
+        if (player.energy < 10) { addToChat('[Ошибка] Нужна энергия для точного удара.'); return; }
+        player.energy -= 10;
+    }
+    if (fight.dodge && Math.random() * 100 < fight.dodge) {
+        battleLog.push('[«' + fight.name + '»] Уклонился от твоего удара!');
+        enemyTurn();
+        return;
+    }
+    let dmg = getDmg() * rand(0.85, 1.15);
+    const crit = Math.random() * 100 < getCrit();
+    if (crit) dmg *= 1.5;
+    if (precise) dmg *= 1.4;
+    dmg = Math.max(4, Math.round(dmg));
+    fight.hp -= dmg;
+    battleLog.push('[Ты] ' + (precise ? 'Точный удар' : 'Удар') + ': -' + dmg + ' HP' + (crit ? ' (КРИТ!)' : ''));
+    if (fight.hp <= 0) { endFight(true); return; }
+    enemyTurn();
+}
+
+function enemyTurn() {
+    if (!fight) return;
+    if (Math.random() * 100 < getDodge()) {
+        battleLog.push('[«' + fight.name + '»] Промахнулся, ты уклонился!');
+        updateHud();
+        return;
+    }
+    let d = fight.dmg * rand(0.8, 1.2);
+    const eCrit = fight.crit && Math.random() * 100 < fight.crit;
+    if (eCrit) d *= 1.5;
+    d = Math.max(3, Math.round(d * (1 - getArmor() / (getArmor() + 100))));
+    player.hp -= d;
+    battleLog.push('[«' + fight.name + '»] Бьет тебя: -' + d + ' HP' + (eCrit ? ' (КРИТ!)' : ''));
+    if (player.hp <= 0) { endFight(false); return; }
+    refresh();
+}
+
+function fightHeal() {
+    if (!fight) return;
+    let item = player.inventory.find(i => i.id === 'medkit') || player.inventory.find(i => i.id === 'bandage');
+    if (!item) { addToChat('[Ошибка] Нет аптечек в сумке.'); return; }
+    useItem(item.id);
+    enemyTurn();
+}
+
+function fleeFight() {
+    if (!fight) return;
+    battleLog.push('[Ты] Смылся из драки.');
+    addToChat('[Ты] Смылся из драки.');
+    fight = null;
+    refresh();
+}
+
+// ============================ КЛАССЫ / СПОСОБНОСТИ ============================
+
+function classInfo() {
+    return CLASSES.find(c => c.id === player.cls) || CLASSES[0];
+}
+
+function setClass(id) {
+    const c = CLASSES.find(x => x.id === id);
+    if (!c) return;
+    if (player.cls === id) return;
+    player.cls = id;
+    addToChat('[Класс] Выбран класс: ' + c.icon + ' ' + c.name + '.');
+    refresh();
+    saveGame();
+}
+
+function classAbilityLabel() {
+    const cls = classInfo();
+    const left = (player.classCd[cls.id] || 0) - Date.now();
+    return left > 0 ? cls.icon + ' ' + cls.ability + ' (' + fmtTime(left / 1000) + ')' : cls.icon + ' ' + cls.ability;
+}
+
+function classAbility() {
+    if (!fight) { addToChat('[Ошибка] Способность работает только в бою.'); return; }
+    const cls = classInfo();
+    if ((player.classCd[cls.id] || 0) > Date.now()) { addToChat('[Ошибка] Способность перезаряжается.'); return; }
+    player.classCd[cls.id] = Date.now() + 5000;
+    if (cls.id === 'defender') {
+        const heal = Math.round(maxHp() * 0.1);
+        player.hp = Math.min(maxHp(), player.hp + heal);
+        battleLog.push('[Ты] Реанимация: +' + heal + ' HP.');
+        addToChat('[Класс] Реанимация: +' + heal + ' HP.');
+    } else if (cls.id === 'tank') {
+        const amt = Math.round(maxHp() * 0.1 + baseArmor() * 0.1);
+        player.classShield = {amt: amt, until: Date.now() + 5000};
+        battleLog.push('[Ты] Щит: +' + amt + ' брони на 5 сек.');
+        addToChat('[Класс] Щит: +' + amt + ' брони на 5 сек.');
+    } else if (cls.id === 'rogue') {
+        const dodge = Math.round(baseDodge() * 0.1);
+        const crit = Math.round(baseCrit() * 0.1);
+        player.classRogue = {dodge: dodge, crit: crit, until: Date.now() + 5000};
+        battleLog.push('[Ты] Уворот: +' + dodge + '% уклонения, +' + crit + '% крита на 5 сек.');
+        addToChat('[Класс] Уворот: +' + dodge + '% уклонения, +' + crit + '% крита на 5 сек.');
+    }
+    updateHud();
+    refresh();
+    saveGame();
+}
+
+function endFight(win) {
+    if (!fight) return;
+    const f = fight;
+    fight = null;
+    if (win) {
+        player.credits += f.reward;
+        player.exp += f.exp;
+        let msg = '[Победа] «' + f.name + '» повержен! +' + f.reward + ' кр, +' + f.exp + ' XP.';
+        if (f.isBoss) {
+            player.bossUntil = Date.now() + BOSS_COOLDOWN;
+            if (Math.random() < 0.35) {
+                const b = 1 + Math.floor(Math.random() * 3);
+                player.bucks += b;
+                msg += ' В трофеях: +' + b + ' бакс!';
+            }
+            msg += ' Боссы уходят в подполье на 10 минут.';
+        }
+        addToChat(msg);
+    } else {
+        player.hp = Math.max(1, Math.round(maxHp() * 0.3));
+        addToChat('[Поражение] Тебя вынесли. Очнулся в подворотне на 30% здоровья.');
+    }
+    battleLog = [];
+    checkLevelUp();
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: БОСС ============================
+
+function renderBoss() {
+    const body = document.getElementById('bossBody');
+    if (fight && fight.isBoss) { body.innerHTML = battleHTML(); return; }
+    const left = player.bossUntil - Date.now();
+    const blocked = left > 0;
+    let html = '<div class="panel"><h3>👑 Боссы</h3>' +
+        '<div class="hint">Боссы открываются по мере роста уровня. Общий кулдаун после боя — 10 минут.</div>' +
+        (blocked ? '<div style="margin-top:6px;font-size:12px;">Перерыв: <span class="cd">' + fmtTime(left / 1000) + '</span></div>' : '<div style="margin-top:6px;font-size:12px;"><span class="green">Боссы готовы к бою!</span></div>') +
+    '</div>';
+    html += BOSSES.map(b => {
+        const locked = player.level < b.minLevel;
+        return '<div class="fight-item"><div style="cursor:pointer;" onclick="openBossModal(\'' + b.id + '\')"><span class="fi-ico">' + b.icon + '</span> <strong>' + b.name + '</strong>' + (locked ? ' <span class="hint">(нужен ' + b.minLevel + ' ур.)</span>' : '') + '<br><span class="hint">HP ' + b.hp + ' • урон ' + b.dmg + ' • уклонение ' + b.dodge + '% • крит ' + b.crit + '%</span></div>' +
+            '<button class="fight-start" onclick="startBoss(\'' + b.id + '\')"' + (locked ? ' disabled title="Нужен ' + b.minLevel + ' уровень"' : '') + (blocked ? ' disabled' : '') + (player.energy < b.cost ? ' disabled' : '') + '>Бой (' + b.cost + ' эн.)</button></div>';
+    }).join('');
+    body.innerHTML = html;
+}
+
+function openBossModal(id) {
+    const b = BOSSES.find(x => x.id === id);
+    if (!b) return;
+    const locked = player.level < b.minLevel;
+    const blocked = player.bossUntil - Date.now() > 0;
+    let rows = '<div class="mi-ico">' + b.icon + '</div><h3>' + b.name + '</h3>';
+    rows += '<div class="mi-row"><span>Уровень для боя</span><b>' + b.minLevel + '</b></div>';
+    rows += '<div class="mi-row"><span>Здоровье</span><b>' + b.hp + ' HP</b></div>';
+    rows += '<div class="mi-row"><span>Урон</span><b>' + b.dmg + '</b></div>';
+    rows += '<div class="mi-row"><span>Уклонение</span><b>' + b.dodge + '%</b></div>';
+    rows += '<div class="mi-row"><span>Крит</span><b>' + b.crit + '%</b></div>';
+    rows += '<div class="mi-row"><span>Стоимость боя</span><b>' + b.cost + ' эн.</b></div>';
+    rows += '<div class="mi-row"><span>Награда</span><b>' + b.reward + ' кр.</b></div>';
+    rows += '<div class="mi-row"><span>Опыт</span><b>+' + b.exp + ' XP</b></div>';
+    rows += '<div class="mi-row"><span>Дроп</span><b>1-3 бакса (35%)</b></div>';
+    if (locked) rows += '<div class="hint" style="margin-top:8px;text-align:center;color:#f59e0b;">Нужен ' + b.minLevel + ' уровень!</div>';
+    if (blocked) rows += '<div class="hint" style="margin-top:8px;text-align:center;color:#f59e0b;">Перерыв: ' + fmtTime((player.bossUntil - Date.now()) / 1000) + '</div>';
+    rows += '<button class="action-btn good" style="margin-top:12px;" onclick="startBoss(\'' + b.id + '\');closeItemModal();"' + (locked || blocked ? ' disabled' : '') + '>⚔️ В бой (' + b.cost + ' эн.)</button>';
+    rows += '<button class="action-btn" onclick="closeItemModal()">Закрыть</button>';
+    document.getElementById('itemModalBox').innerHTML = rows;
+    document.getElementById('itemModal').classList.add('show');
+}
+
+function startBoss(id) {
+    if (player.bossUntil > Date.now()) return;
+    startFight(id);
+}
+
+// ============================ ЭКРАН: ПОДРАБОТКА ============================
+
+function renderWork() {
+    const body = document.getElementById('workBody');
+    body.innerHTML = JOBS.map(j =>
+            '<div class="fight-item"><div><span class="fi-ico">' + j.icon + '</span> <strong>' + j.name + '</strong><br><span class="hint">' + j.pay[0] + '-' + j.pay[1] + ' кр • +' + j.exp + ' XP' + (j.risk ? ' • есть риск' : '') + '</span></div>' +
+            '<button class="fight-start" onclick="doJob(\'' + j.id + '\')"' + (player.energy < j.cost ? ' disabled' : '') + '>Работать (' + j.cost + ' эн.)</button></div>'
+        ).join('');
+}
+
+function doJob(id) {
+    const job = JOBS.find(j => j.id === id);
+    if (!job) return;
+    if (player.energy < job.cost) { addToChat('[Ошибка] Нужно ' + job.cost + ' энергии.'); return; }
+    player.energy -= job.cost;
+    if (job.risk && Math.random() < job.risk) {
+        const d = Math.floor(rand(20, 40));
+        takeDamage(d);
+        addToChat('[Работа] Заказ обернулся западней: урон -' + d + ' HP, без оплаты.');
+    } else {
+        const pay = Math.round(job.pay[0] + Math.random() * (job.pay[1] - job.pay[0]));
+        player.credits += pay;
+        player.exp += job.exp;
+        addToChat('[Работа] ' + job.name + ': +' + pay + ' кр, +' + job.exp + ' XP.');
+    }
+    checkLevelUp();
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: БАНК ============================
+
+function renderBank() {
+    const body = document.getElementById('bankBody');
+    if (player.bank.amount > 0) {
+        const left = player.bank.until - Date.now();
+        const totalDur = (player.bank.dur || 3600) * 1000;
+        const progress = left > 0 ? pct(totalDur - left, totalDur) : 100;
+        const done = left <= 0;
+        body.innerHTML = '<div class="panel"><h3>🏦 Текущий вклад</h3>' +
+            '<div style="font-size:12px;line-height:1.8;">' +
+                '<div>Сумма: <b class="gold">' + player.bank.amount + ' кр</b> (' + player.bank.label + ')</div>' +
+                (done ? '<div>К выдаче: <b class="green">+' + Math.round(player.bank.amount * player.bank.rate) + ' кр</b></div>' : '<div>Прибыль по истечении: <b class="green">+' + Math.round(player.bank.amount * player.bank.rate) + ' кр</b></div>') +
+                '<div class="pbar" style="width:100%;margin:6px 0;"><div class="pfill xp" style="width:' + progress + '%;"></div></div>' +
+                '<div id="bankCd">' + (done ? '<span class="green">Готово к выдаче!</span>' : 'Осталось: <span class="cd">' + fmtTime(left / 1000) + '</span>') + '</div>' +
+            '</div></div>' +
+            (done
+                ? '<button class="action-btn" style="background:var(--accent-purple);color:#fff;border-color:var(--accent-purple);" onclick="claimBank(false)">Забрать вклад</button>'
+                : '<button class="action-btn" style="background:#f97316;color:#fff;border-color:#f97316;" onclick="claimBank(false)">Снять досрочно (без процентов)</button>');
+    } else {
+        body.innerHTML = '<div class="panel"><h3>🏦 Новый вклад</h3>' +
+            '<select class="sel" id="bankDeal">' + BANK_DEALS.map((d, i) => '<option value="' + i + '">' + d.icon + ' ' + d.label + ' (+' + (d.rate * 100) + '%)</option>').join('') + '</select>' +
+            '<input class="inp" id="bankAmount" type="number" placeholder="Сумма вклада" min="1" />' +
+            '<div class="hint">Каждый час = +1% к вкладу. Досрочное снятие — возврат суммы без процентов.</div></div>' +
+            '<button class="action-btn good" onclick="depositBank()">Вложить</button>';
+    }
+}
+
+function depositBank() {
+    if (player.bank.amount > 0) return;
+    const dealEl = document.getElementById('bankDeal');
+    const amtEl = document.getElementById('bankAmount');
+    if (!dealEl || !amtEl) return;
+    const deal = BANK_DEALS[Number(dealEl.value)];
+    const amt = Math.floor(Number(amtEl.value));
+    if (!(amt > 0)) { addToChat('[Ошибка] Введи сумму вклада.'); return; }
+    if (player.credits < amt) { addToChat('[Ошибка] Нет кредитов.'); return; }
+    player.credits -= amt;
+    player.bank = {amount: amt, until: Date.now() + deal.dur * 1000, rate: deal.rate, label: deal.label, dur: deal.dur};
+    addToChat('[Банк] Вложено ' + amt + ' кр на ' + deal.label + '.');
+    refresh();
+    saveGame();
+}
+
+function claimBank(auto) {
+    if (!player.bank.amount) return;
+    if (player.bank.until <= Date.now()) {
+        const gain = Math.floor(player.bank.amount * (1 + player.bank.rate));
+        player.credits += gain;
+        addToChat('[Банк] ' + (auto ? 'Вклад созрел' : 'Ты забрал вклад') + ': +' + gain + ' кр.');
+    } else {
+        player.credits += player.bank.amount;
+        addToChat('[Банк] Досрочное снятие: проценты не начислены, возвращено ' + player.bank.amount + ' кр.');
+    }
+    player.bank = {amount:0, until:0, rate:0, label:'', dur:3600};
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: БАНДА ============================
+
+function renderCrew() {
+    const body = document.getElementById('crewBody');
+    let rentPanel;
+    if (player.crewRent.id && player.crewRent.until > Date.now()) {
+        const rc = CREW.find(x => x.id === player.crewRent.id);
+        rentPanel = '<div class="panel"><h3>⏱ Нанять на 24 часа</h3>' +
+            '<div class="hint">Арендован: ' + (rc ? rc.icon + ' ' + rc.name : '') + ' <b class="green">(+' + (rc ? rc.income : 0) + ' кр/мин)</b></div>' +
+            '<div class="timer" style="font-size:18px;font-weight:bold;color:#a78bfa;margin-top:6px;">⏳ ' + fmtTime((player.crewRent.until - Date.now()) / 1000) + '</div></div>';
+    } else {
+        rentPanel = '<div class="panel"><h3>⏱ Нанять на 24 часа</h3>' +
+            '<div class="hint">Временный работник работает 24 часа, потом уходит.</div>' +
+            CREW.map(c => '<div class="fight-item"><div><span class="fi-ico">' + c.icon + '</span> <strong>' + c.name + '</strong><br><span class="hint">+' + c.income + ' кр/мин на 24 часа</span></div>' +
+                '<button class="fight-start" onclick="buyCrewRent(\'' + c.id + '\')"' + (player.credits < c.cost ? ' disabled' : '') + '>Нанять (' + c.cost + ' кр.)</button></div>').join('') +
+            '</div>';
+    }
+    const foreverPanel = '<div class="panel"><h3>🔒 Нанять навсегда</h3>' +
+        '<div class="hint">Работник остаётся с тобой навсегда.</div>' +
+        CREW.map(c =>
+            '<div class="fight-item"><div><span class="fi-ico">' + c.icon + '</span> <strong>' + c.name + '</strong> <span style="color:#94a3b8;">x' + player.crew[c.id] + '</span><br><span class="hint">+' + c.income + ' кр/мин за работника</span></div>' +
+            '<button class="fight-start" onclick="buyCrew(\'' + c.id + '\')"' + (player.credits < c.costForever ? ' disabled' : '') + '>Нанять (' + c.costForever + ' кр.)</button></div>'
+        ).join('') +
+        '</div>';
+    body.innerHTML = rentPanel + foreverPanel +
+    '<div class="panel" style="margin-top:10px;"><div class="hint">Бизнес приносит <b class="green">' + crewPerMin() + ' кр/мин</b>, даже когда ты не в сети.</div></div>';
+}
+
+function buyCrewRent(id) {
+    const c = CREW.find(x => x.id === id);
+    if (!c) return;
+    if (player.credits < c.cost) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    if (player.crewRent.until > Date.now()) { addToChat('[Бизнес] У тебя уже есть арендованный работник.'); return; }
+    player.credits -= c.cost;
+    player.crewRent = {id: c.id, until: Date.now() + 86400000};
+    addToChat('[Бизнес] Арендован на 24 часа: ' + c.name + ' (+' + c.income + ' кр/мин).');
+    refresh();
+    saveGame();
+}
+
+function buyCrew(id) {
+    const c = CREW.find(x => x.id === id);
+    if (!c) return;
+    if (player.credits < c.costForever) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    player.credits -= c.costForever;
+    player.crew[c.id]++;
+    addToChat('[Бизнес] Нанят: ' + c.name + ' (+' + c.income + ' кр/мин).');
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: ГАРАЖ ============================
+
+function renderGarage() {
+    const body = document.getElementById('garageBody');
+    const cb = carBonus();
+    body.innerHTML = CARS.map(c => {
+        const owned = player.ownedCars.includes(c.id);
+        const active = cb.id === c.id;
+        let desc = '+' + c.energyMax + ' энергия';
+        if (c.dmg) desc += ' • +' + c.dmg + ' урон';
+        if (c.crit) desc += ' • +' + c.crit + '% крит';
+        if (c.regen) desc += ' • быстрый реген';
+        return '<div class="fight-item"><div><span class="fi-ico">' + c.icon + '</span> <strong>' + c.name + '</strong>' + (active ? ' <span class="green">АКТИВНА</span>' : '') + '<br><span class="hint">' + desc + '</span></div>' +
+            (owned ? '<span class="green" style="font-size:11px;">В гараже</span>' : '<button class="fight-start" onclick="buyCar(\'' + c.id + '\')"' + (player.credits < c.price ? ' disabled' : '') + '>Купить (' + c.price + ' кр.)</button>') +
+        '</div>';
+    }).join('');
+}
+
+function buyCar(id) {
+    const c = CARS.find(x => x.id === id);
+    if (!c) return;
+    if (player.ownedCars.includes(id)) { addToChat('[Ошибка] Уже в гараже.'); return; }
+    if (player.credits < c.price) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    player.credits -= c.price;
+    player.ownedCars.push(id);
+    addToChat('[Гараж] Куплена тачка: ' + c.name + '. Бонусы активны!');
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: КАЗИНО ============================
+
+function addCasinoLog(type, amount, win, detail) {
+    player.casinoLog = player.casinoLog || [];
+    player.casinoLog.unshift({type: type, amount: amount, win: !!win, detail: detail || '', t: Date.now()});
+    if (player.casinoLog.length > 20) player.casinoLog.length = 20;
+}
+
+function renderCasino() {
+    const body = document.getElementById('casinoBody');
+    body.innerHTML = '<div class="panel"><h3>🎲 Кости</h3>' +
+        '<div class="hint" style="margin-bottom:4px;text-align:center;">Ваша ставка</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;justify-content:center;">' +
+            [50,100,500,1000,5000,10000].map(v => '<button class="tab' + (casinoBetVal === v ? ' active' : '') + '" onclick="setCasinoBet(' + v + ')">' + v + '</button>').join('') +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            '<div><button class="action-btn" style="background:var(--accent-purple);color:#fff;border-color:var(--accent-purple);" onclick="rollDice()"' + (rolling ? ' disabled' : '') + '>🎲 Бросить кости</button>' +
+            '<div class="hint" style="margin-top:4px;text-align:center;">Бросаются два кубика. Сумма 7 или 11 — выигрыш x2 от ставки. Дубль (одинаковые) — выигрыш x3. Две шестерки — Джекпот x4 + 1 бакс. Любая другая сумма — проигрыш ставки.</div></div>' +
+            '<div><div class="hint" style="text-align:center;margin-bottom:4px;">Сделай выбор, куда поставить</div>' +
+            '<div style="display:flex;gap:6px;">' +
+                '<button class="action-btn" style="background:var(--accent-purple);color:#fff;border-color:var(--accent-purple);" onclick="coinFlip(\'orel\')">🦅 Орёл (x1.5)</button>' +
+                '<button class="action-btn" style="background:var(--accent-purple);color:#fff;border-color:var(--accent-purple);" onclick="coinFlip(\'reshka\')">🌿 Решка (x1.5)</button>' +
+            '</div>' +
+            '<div class="hint" style="margin-top:4px;text-align:center;">Угадал сторону — выигрыш x1.5 от ставки. Не угадал — проигрыш ставки.</div></div>' +
+        '</div>' +
+        '<div id="diceResult" style="text-align:center;font-size:22px;min-height:64px;line-height:1.5;font-family:\'Segoe UI Symbol\',monospace;padding-top:4px;"></div></div>';
+
+    const log = (player.casinoLog || []);
+    body.innerHTML += '<div class="panel"><h3 style="justify-content:center;">📋 История игр</h3>' +
+        (log.length ? log.map(e => {
+            const icon = e.type === 'dice' ? '🎲' : '🪙';
+            const cls = e.win ? 'green' : 'red';
+            const sign = e.win ? '+' : '-';
+            return '<div class="fight-item" style="padding:5px 8px;"><span>' + icon + ' ' + (e.win ? 'Выигрыш' : 'Проигрыш') + '<br><span class="hint">' + e.detail + '</span></span><span class="' + cls + '">' + sign + e.amount + ' кр.</span></div>';
+        }).join('') : '<div class="hint">Пока игр не было.</div>') +
+    '</div>';
+}
+
+function setCasinoBet(v) {
+    casinoBetVal = v;
+    renderCasino();
+}
+
+function rollDice() {
+    if (rolling) return;
+    const bet = Math.floor(Number(casinoBetVal));
+    if (!(bet > 0)) { addToChat('[Ошибка] Введи ставку.'); return; }
+    if (player.credits < bet) { addToChat('[Ошибка] Нет кредитов.'); return; }
+    player.credits -= bet;
+    rolling = true;
+    document.getElementById('diceResult').innerHTML = '&#127922; &#127922;';
+    setTimeout(function() {
+        const d1 = 1 + Math.floor(Math.random() * 6);
+        const d2 = 1 + Math.floor(Math.random() * 6);
+        const sum = d1 + d2;
+        const face = ['', '&#9856;', '&#9857;', '&#9858;', '&#9859;', '&#9860;', '&#9861;'];
+        let win = 0, msg, detail;
+        if (d1 === 6 && d2 === 6) {
+            win = bet * 4;
+            player.credits += win;
+            player.bucks += 1;
+            detail = '6+6 — ДЖЕКПОТ';
+            msg = '<span class="gold">ДЖЕКПОТ! +' + win + ' кр +1 бакс!</span>';
+        } else if (sum === 7 || sum === 11) {
+            win = bet * 2;
+            player.credits += win;
+            detail = 'сумма ' + sum;
+            msg = '<span class="green">Сумма ' + sum + '! Выигрыш +' + win + ' кр.</span>';
+        } else if (d1 === d2) {
+            win = bet * 3;
+            player.credits += win;
+            detail = 'дубль ' + d1 + '+' + d1;
+            msg = '<span class="green">Дубль! Сумма ' + sum + ': +' + win + ' кр.</span>';
+        } else {
+            detail = 'сумма ' + sum;
+            msg = '<span class="red">Сумма ' + sum + '. Проигрыш.</span>';
+        }
+        addCasinoLog('dice', win > 0 ? win : bet, win > 0, detail);
+        document.getElementById('diceResult').innerHTML = '<div>' + face[d1] + ' ' + face[d2] + '</div><div style="font-size:11px;">' + msg + '</div>';
+        rolling = false;
+        refresh();
+        saveGame();
+    }, 500);
+}
+
+function coinFlip(pick) {
+    const bet = Math.floor(Number(casinoBetVal));
+    if (!(bet > 0)) { addToChat('[Ошибка] Введи ставку.'); return; }
+    if (player.credits < bet) { addToChat('[Ошибка] Нет кредитов.'); return; }
+    player.credits -= bet;
+    const orel = Math.random() < 0.5;
+    const side = orel ? 'orel' : 'reshka';
+    const sideName = orel ? 'Орёл' : 'Решка';
+    if (pick === side) {
+        const p = Math.round(bet * 1.5);
+        player.credits += p;
+        addCasinoLog('coin', p, true, sideName + ' — угадал');
+        addToChat('[Казино] ' + sideName + '! Угадал, выигрыш +' + p + ' кр.');
+    } else {
+        addCasinoLog('coin', bet, false, sideName + ' — не угадал');
+        addToChat('[Казино] ' + sideName + '. Не угадал, минус ' + bet + ' кр.');
+    }
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: МАГАЗИН ============================
+
+function renderShop() {
+    const body = document.getElementById('shopBody');
+    const cats = [['weapon','🔫 Оружие'],['armor','🧥 Броня'],['accessory','💎 Аксессуары'],['consumable','🧪 Расходники'],['upgrade','⭐ Улучшения'],['booster','💥 Бустеры'],['tattoo','💉 Тату-салон'],['hair','💈 Парикмахерская']];
+    let html = '<div class="tabs">' + cats.map(c => '<button class="tab' + (shopCat === c[0] ? ' active' : '') + '" onclick="setShopCat(\'' + c[0] + '\')">' + c[1] + '</button>').join('') + '<button class="tab" onclick="openScreen(\'garage\')">🚗 Гараж</button></div>';
+    if (shopCat === 'upgrade') {
+        html += UPGRADES.map(u => {
+            const lvl = player.upgrades[u.stat];
+            const cost = upgradeCost(u);
+            return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + u.icon + '</span><div><strong>' + u.name + '</strong><br><small>Уровень: ' + lvl + ' • +' + u.per + ' ' + statName(u.stat) + ' за уровень</small></div></div>' +
+                '<button class="si-buy" onclick="buyUpgrade(\'' + u.id + '\')"' + (player.credits < cost ? ' disabled' : '') + '>Прокачать (' + cost + ' кр.)</button></div>';
+        }).join('');
+    } else if (shopCat === 'booster') {
+        html += '<div class="hint" style="margin-bottom:8px;">Временные бонусы покупаются сразу за кредиты и действуют 60 секунд.</div>' +
+            BOOSTERS.map(b => {
+                const disabled = player.credits < b.price;
+                return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + b.icon + '</span><div><strong>' + b.name + '</strong><br><small>' + b.desc + '</small></div></div>' +
+                    '<button class="si-buy" onclick="buyBooster(\'' + b.id + '\')"' + (disabled ? ' disabled' : '') + '>Купить (' + b.price + ' кр.)</button></div>';
+            }).join('');
+    } else if (shopCat === 'tattoo' || shopCat === 'hair') {
+        const list = shopCat === 'tattoo' ? TATTOOS : HAIRSTYLES;
+        html += '<div class="hint" style="margin-bottom:8px;">Каждая татуировка/прическа даёт +5% к одной характеристике на выбор. Выбери характеристику перед покупкой.</div>' +
+            list.map(c => {
+                const owned = player.cosmetics.includes(c.id);
+                const opts = AP_STATS.map(s => '<option value="' + s.key + '">' + s.icon + ' ' + s.name + '</option>').join('');
+                return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + c.icon + '</span><div><strong>' + c.name + '</strong><br><small>Цена: ' + c.price + ' кр. • Бонус: +5% к выбранной характеристике</small></div></div>' +
+                    '<div style="display:flex;gap:6px;"><select class="sel" id="' + shopCat + 'Sel_' + c.id + '" style="flex:1;margin:0;">' + opts + '</select>' +
+                    '<button class="si-buy" style="width:auto;padding:8px 12px;" onclick="buyCosmetic(\'' + shopCat + '\',\'' + c.id + '\')"' + (owned ? ' disabled title="Уже есть"' : '') + '>' + (owned ? 'Есть' : 'Купить') + '</button></div></div>';
+            }).join('');
+    } else {
+        html += ITEMS[shopCat].map(itm => {
+            const owned = itm.slot && (player.inventory.some(i => i.id === itm.id) || player.equipped[itm.slot] === itm.id);
+            let extra = '<small>Цена: ' + itm.price + ' кр.</small>';
+            if (itm.dmg) extra += '<small>Урон: +' + itm.dmg + '</small>';
+            if (itm.armor) extra += '<small>Броня: +' + itm.armor + '</small>';
+            if (itm.dodge) extra += '<small>Уклонение: +' + itm.dodge + '%</small>';
+            if (itm.crit) extra += '<small>Крит: +' + itm.crit + '%</small>';
+            if (itm.hpBonus) extra += '<small>ХП: +' + itm.hpBonus + '</small>';
+            if (itm.heal) extra += '<small>Лечит: +' + itm.heal + ' HP</small>';
+            if (itm.energy) extra += '<small>Энергия: +' + itm.energy + '</small>';
+            if (itm.buff) extra += '<small>Буст: +' + itm.buffAmt + ' (' + itm.buffDur + 'с)</small>';
+            return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + itm.icon + '</span><div><strong>' + itm.name + '</strong><br>' + extra + '</div></div>' +
+                '<button class="si-buy" onclick="buyItem(\'' + itm.id + '\')"' + (owned ? ' disabled title="Уже есть"' : '') + '>Купить</button></div>';
+        }).join('') || '<div class="hint">Нет товаров</div>';
+    }
+    body.innerHTML = html;
+}
+
+function setShopCat(c) { shopCat = c; renderShop(); }
+
+function buyItem(id) {
+    const itm = findItem(id);
+    if (!itm) return;
+    if (player.credits < itm.price) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    if (itm.slot && (player.inventory.some(i => i.id === id) || player.equipped[itm.slot] === id)) { addToChat('[Ошибка] Уже есть.'); return; }
+    player.credits -= itm.price;
+    addInv(id, 1);
+    addToChat('[Магазин] Куплено: ' + itm.icon + ' ' + itm.name + '.');
+    refresh();
+    saveGame();
+}
+
+function buyUpgrade(id) {
+    const u = UPGRADES.find(x => x.id === id);
+    if (!u) return;
+    const cost = upgradeCost(u);
+    if (player.credits < cost) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    player.credits -= cost;
+    player.upgrades[u.stat]++;
+    addToChat('[Магазин] «' + u.name + '» улучшено до ' + player.upgrades[u.stat] + ' уровня.');
+    refresh();
+    saveGame();
+}
+
+function buyBooster(id) {
+    const b = BOOSTERS.find(x => x.id === id);
+    if (!b) return;
+    if (player.credits < b.price) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    player.credits -= b.price;
+    if (b.key === 'energy') {
+        player.energy = Math.min(maxEnergy(), player.energy + b.amt);
+        addToChat('[Бустер] ' + b.name + ': энергия +' + b.amt + '.');
+    } else {
+        player.buffs[b.key] = {amt: b.amt, until: Date.now() + b.dur * 1000};
+        addToChat('[Бустер] ' + b.name + ' активен на ' + b.dur + ' сек: ' + b.desc + '.');
+    }
+    refresh();
+    saveGame();
+}
+
+function buyCosmetic(cat, id) {
+    const list = cat === 'tattoo' ? TATTOOS : HAIRSTYLES;
+    const itm = list.find(x => x.id === id);
+    if (!itm) return;
+    if (player.cosmetics.includes(id)) { addToChat('[Ошибка] Уже куплено.'); return; }
+    if (player.credits < itm.price) { addToChat('[Ошибка] Не хватает кредитов.'); return; }
+    const sel = document.getElementById(cat + 'Sel_' + id);
+    const stat = (sel && sel.value && AP_STATS.find(s => s.key === sel.value)) ? sel.value : 'dmg';
+    player.credits -= itm.price;
+    player.cosmetics.push(id);
+    player.apStats[stat] = (player.apStats[stat] || 0) + 5;
+    const catName = cat === 'tattoo' ? 'Тату-салон' : 'Парикмахерская';
+    addToChat('[' + catName + '] ' + itm.icon + ' ' + itm.name + ': ' + statName(stat) + ' +5%.');
+    refresh();
+    saveGame();
+}
+
+// ============================ ЭКРАН: СУМКА ============================
+
+function sellPrice(itm) { return Math.floor(itm.price * 0.3); }
+
+function renderInventory() {
+    const body = document.getElementById('inventoryBody');
+    const groups = {};
+    player.inventory.forEach(e => { groups[e.id] = (groups[e.id] || 0) + e.qty; });
+    const ids = Object.keys(groups);
+    if (!ids.length) {
+        body.innerHTML = '<div class="panel"><h3>🎒 Сумка</h3><div class="hint">Здесь пусто. Загляни в магазин!</div>' +
+            '<button class="action-btn" onclick="openScreen(\'shop\')">🛒 Открыть магазин</button></div>';
+        return;
+    }
+    body.innerHTML = ids.map(id => {
+        const itm = findItem(id);
+        const qty = groups[id];
+        const sellTxt = 'Продать за ' + sellPrice(itm) + ' кр.';
+        const btns = itm.slot
+            ? '<button class="fight-start" onclick="equipItem(\'' + id + '\')">Надеть</button> <button class="fight-start" onclick="sellItem(\'' + id + '\')" style="background:#f97316;">' + sellTxt + '</button>'
+            : '<button class="fight-start" onclick="useItem(\'' + id + '\')">Использовать</button> <button class="fight-start" onclick="sellItem(\'' + id + '\')" style="background:#f97316;">' + sellTxt + '</button>';
+        return '<div class="fight-item"><div><span class="fi-ico">' + itm.icon + '</span> <strong>' + itm.name + '</strong>' + (qty > 1 ? ' <span style="color:#94a3b8;">x' + qty + '</span>' : '') + '</div><div>' + btns + '</div></div>';
+    }).join('');
+}
+
+function useItem(id) {
+    const itm = findItem(id);
+    if (!itm) return;
+    if (itm.heal) player.hp = Math.min(maxHp(), player.hp + itm.heal);
+    if (itm.energy) player.energy = Math.min(maxEnergy(), player.energy + itm.energy);
+    if (itm.buff === 'dmg') player.buffs.dmg = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
+    if (itm.buff === 'crit') player.buffs.crit = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
+    if (itm.buff === 'dodge') player.buffs.dodge = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
+    removeInv(id, 1);
+    addToChat('[Сумка] Использовано: ' + itm.icon + ' ' + itm.name + '.');
+    refresh();
+    saveGame();
+}
+
+function sellItem(id) {
+    const itm = findItem(id);
+    if (!itm) return;
+    const price = sellPrice(itm);
+    player.credits += price;
+    removeInv(id, 1);
+    addToChat('[Сумка] Продано: ' + itm.name + ' за ' + price + ' кр.');
+    refresh();
+    saveGame();
+}
+
+function equipItem(id) {
+    const itm = findItem(id);
+    if (!itm || !itm.slot) return;
+    const slot = itm.slot;
+    if (player.equipped[slot]) player.inventory.push({id: player.equipped[slot], qty: 1});
+    player.equipped[slot] = id;
+    removeInv(id, 1);
+    addToChat('[Сумка] Надето: ' + itm.icon + ' ' + itm.name + '.');
+    refresh();
+    saveGame();
+}
+
+function unequipSlot(slot) {
+    if (!player.equipped[slot]) return;
+    const itm = findItem(player.equipped[slot]);
+    player.inventory.push({id: itm.id, qty: 1});
+    delete player.equipped[slot];
+    addToChat('[Сумка] Снято: ' + itm.name + '.');
+    refresh();
+    saveGame();
+}
+
+function addInv(id, qty) {
+    const e = player.inventory.find(i => i.id === id);
+    if (e) e.qty += qty; else player.inventory.push({id: id, qty: qty});
+}
+function removeInv(id, qty) {
+    for (let i = 0; i < player.inventory.length; i++) {
+        if (player.inventory[i].id === id) {
+            player.inventory[i].qty -= qty;
+            if (player.inventory[i].qty <= 0) player.inventory.splice(i, 1);
+            return;
+        }
+    }
+}
+
+// ============================ ПОМОЩЬ ============================
+
+function renderHelp() {
+    const body = document.getElementById('helpBody');
+    body.innerHTML = '<div class="panel"><h3>❓ Как играть</h3><div style="font-size:12px;line-height:2;">' +
+        '⚡ Энергия тратится на действия и восстанавливается 1 за 15 сек. Энергетик — в магазине.<br>' +
+        '🤝 Связи — цепочка из 10 целей для переговоров: шанс этапа 75%, старт 20 энергии, при провале даётся 10% награды. Новый заход — 1 раз в час.<br>' +
+        '🥊 Разборки — противники открываются с уровнем.<br>' +
+        '🎭 Классы — Защитник, Танк или Ловкач. Выбор в «Персонаже», в бою доступна способность класса (кулдаун 5 сек).<br>' +
+        '👑 Босс — боссы открываются с уровнем, общий кулдаун 10 минут, дропают баксы.<br>' +
+        '⭐ Очки действия — каждое даёт +1% к характеристике. За каждый уровень +1 очко действия.<br>' +
+        '🏢 Бизнес — работники приносят доход даже в оффлайне.<br>' +
+        '🏦 Банк — вклады с процентами.<br>' +
+        '💥 Бустеры — временные бонусы за кредиты.<br>' +
+        '💉 Тату-салон и 💈 парикмахерская — в магазине: каждая татуировка/прическа даёт +5% к характеристике на выбор.<br>' +
+        '🎁 Бонус дня — награда растёт со стриком.<br>' +
+        '🔍 Масштаб страницы — кнопки +/- справа сверху.<br>' +
+        '💾 Прогресс сохраняется автоматически.</div></div>';
+}
+
+// ============================ ПРОКАЧКА / БОНУСЫ / УРОН ============================
+
+function checkLevelUp() {
+    let leveled = false;
+    while (player.exp >= player.expNext) {
+        player.exp -= player.expNext;
+        player.level++;
+        player.expNext = player.level * 100;
+        player.hp = maxHp();
+        player.energy = maxEnergy();
+        player.ap++;
+        addToChat('[LEVEL UP] Ты достиг ' + player.level + ' уровня! +1 очко действия, здоровье и энергия восстановлены.');
+        leveled = true;
+    }
+    if (leveled) { refresh(); saveGame(); }
+}
+
+function claimDaily() {
+    const now = new Date();
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    if (player.dailyLast === today) { alert('Бонус дня уже получен. Возвращайся завтра!'); return; }
+    if (player.dailyLast) {
+        const last = new Date(player.dailyLast);
+        const diff = Math.floor((new Date(today) - last) / 86400000);
+        if (diff > 1) player.dailyStreak = 0;
+    }
+    player.dailyStreak++;
+    const idx = Math.min(player.dailyStreak - 1, DAILY_REWARDS.length - 1);
+    const cred = DAILY_REWARDS[idx];
+    let bucks = 0;
+    if (player.dailyStreak % 7 === 0) bucks = 5;
+    player.credits += cred;
+    player.bucks += bucks;
+    player.dailyLast = today;
+    addToChat('[Бонус] День ' + player.dailyStreak + ': +' + cred + ' кр' + (bucks ? ' +' + bucks + ' бакс' : '') + '. Завтра будет ещё больше!');
+    refresh();
+    saveGame();
+}
+
+function takeDamage(amount) {
+    player.hp = Math.max(1, player.hp - amount);
+    if (player.hp <= 0) {
+        player.hp = maxHp();
+        player.location = 'yard';
+        addToChat('[Система] Тебя вырубили. Очнулся в родном дворе, здоровье восстановлено.');
+    }
+}
+// ============================ АДМИН-ПАНЕЛЬ ============================
+
+function openAdmin() {
+    const p = prompt('Введи пароль администратора:');
+    if (p === '7878') {
+        openScreen('admin');
+    } else if (p !== null) {
+        alert('Неверный пароль.');
+    }
+}
+
+function renderAdmin() {
+    const body = document.getElementById('adminBody');
+    const row = (label, id, fn) => '<div class="fight-item"><div><strong>' + label + '</strong></div>' +
+        '<div style="display:flex;gap:6px;align-items:center;"><input class="inp" id="' + id + '" type="number" min="0" value="0" style="width:110px;" /><button class="action-btn good" onclick="' + fn + '">Добавить</button></div></div>';
+    body.innerHTML = '<div class="panel"><h3>🔑 Админ-панель</h3><div class="hint">Пароль подтверждён. Управление тестовым прогрессом.</div></div>' +
+        '<div class="panel">' +
+            row('Кредиты', 'admCred', 'adminAdd(\'credits\', \'admCred\')') +
+            row('Уровни', 'admLvl', 'adminAdd(\'level\', \'admLvl\')') +
+            row('Баксы', 'admBucks', 'adminAdd(\'bucks\', \'admBucks\')') +
+            row('Энергия', 'admEn', 'adminAdd(\'energy\', \'admEn\')') +
+            row('Очки действий', 'admAp', 'adminAdd(\'ap\', \'admAp\')') +
+        '</div>' +
+        '<div class="panel"><h3>⏱ Тайминги</h3>' +
+            '<button class="action-btn" onclick="adminResetTimers()">Открыть все тайминги</button>' +
+            '<div class="hint" style="margin-top:6px;">Сброс кулдаунов: боссы, связи, классовые способности.</div>' +
+        '</div>' +
+        '<button class="action-btn" onclick="goMain()">🏠 Главная</button>';
+}
+
+function adminAdd(field, id) {
+    const el = document.getElementById(id);
+    const v = parseInt(el.value, 10);
+    if (!v || v <= 0) { addToChat('[Админ] Введи положительное число.'); return; }
+    if (field === 'credits') player.credits += v;
+    else if (field === 'bucks') player.bucks += v;
+    else if (field === 'energy') player.energy = Math.min(maxEnergy(), player.energy + v);
+    else if (field === 'ap') player.ap += v;
+    else if (field === 'level') {
+        for (let i = 0; i < v; i++) {
+            player.level++;
+            player.expNext = player.level * 100;
+            player.ap++;
+        }
+        player.hp = maxHp();
+        player.energy = maxEnergy();
+    }
+    el.value = 0;
+    addToChat('[Админ] Добавлено: +' + v + ' ' + field + '.');
+    refresh();
+    saveGame();
+}
+
+function adminResetTimers() {
+    player.bossUntil = 0;
+    player.robberyUntil = 0;
+    player.robActive = false;
+    player.robStage = 0;
+    player.classCd = {defender:0, tank:0, rogue:0};
+    player.classShield = {amt:0, until:0};
+    player.classRogue = {dodge:0, crit:0, until:0};
+    addToChat('[Админ] Все тайминги сброшены: боссы и связи доступны.');
+    refresh();
+    saveGame();
+}
+
+// ============================ ЦИКЛ ============================
+
+function tick() {
+    player.energy = Math.min(maxEnergy(), player.energy + regenPerSec());
+    if (crewPerMin() > 0) player.credits += crewPerMin() / 60;
+    if (player.bank.amount > 0) {
+        if (player.bank.until <= Date.now()) claimBank(true);
+        else if (currentScreen === 'bank') renderBank();
+    }
+    updateHud();
+    if (currentScreen === 'main') renderMain();
+    if (currentScreen === 'boss' && !fight) renderBoss();
+    if (currentScreen === 'robbery' && !player.robActive) renderRobbery();
+    if (player.crewRent.until > 0 && player.crewRent.until <= Date.now()) {
+        player.crewRent = {id:null, until:0};
+        addToChat('[Бизнес] Аренда закончилась: временный работник ушёл.');
+    }
+    if (currentScreen === 'crew') renderCrew();
+}
+    window.onerror = function (msg, src, line) {
+        try {
+            const grid = document.getElementById('mainGrid');
+            if (grid && !grid.children.length) { updateHud(); renderMain(); }
+        } catch (e) {}
+        return false;
+    };
+</script>
+</body>
+</html>
