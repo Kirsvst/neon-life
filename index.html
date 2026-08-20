@@ -124,11 +124,8 @@ body {
 
 /* === МАСШТАБ === */
 .zoom-bar {
-    position: fixed;
-    right: 12px;
-    top: 12px;
-    z-index: 200;
     display: flex;
+    align-items: center;
     gap: 4px;
     background: rgba(10,5,26,0.85);
     border: 1px solid #334155;
@@ -424,9 +421,9 @@ body {
     flex-wrap: wrap;
     gap: 6px;
     border-top: 1px solid #334155;
-    position: sticky;
-    bottom: 0;
+    position: relative;
     z-index: 95;
+    width: 100%;
 }
 .menu-btn {
     color: var(--accent-emerald);
@@ -487,6 +484,87 @@ body {
     box-shadow: 0 0 25px var(--glow-purple);
 }
 .modal h3 { color: var(--accent-emerald); font-size: 14px; margin: 8px 0 10px; text-align: center; }
+
+/* === ОКНО ОПИСАНИЯ СПОСОБНОСТЕЙ БОССОВ === */
+.boss-abil-overlay {
+    padding: 60px 20px;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+.boss-abil-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--accent-purple);
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 0 25px var(--glow-purple);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-purple) var(--bg-dark);
+    margin: 0 auto;
+}
+.boss-abil-box::-webkit-scrollbar { width: 8px; }
+.boss-abil-box::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
+.boss-abil-box::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 4px; }
+.boss-abil-box::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+/* === ОКНО ИНФОРМАЦИИ О БОССАХ === */
+.boss-info-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+}
+.boss-info-overlay.show { display: flex; }
+.boss-info-box {
+    background: var(--bg-panel);
+    border: 2px solid var(--accent-purple);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: calc(100vh - 130px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 40px var(--glow-purple), 0 0 80px rgba(156,39,176,0.2);
+    margin: 65px 0;
+}
+.boss-info-header {
+    padding: 16px 20px;
+    border-bottom: 2px solid var(--accent-purple);
+    text-align: center;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(156,39,176,0.2), transparent);
+}
+.boss-info-header .mi-ico { font-size: 48px; margin-bottom: 8px; }
+.boss-info-header h3 {
+    color: var(--accent-emerald);
+    font-size: 18px;
+    margin: 0;
+    text-shadow: 0 0 10px var(--glow-emerald);
+    letter-spacing: 1px;
+}
+.boss-info-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-purple) var(--bg-dark);
+}
+.boss-info-content::-webkit-scrollbar { width: 8px; }
+.boss-info-content::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
+.boss-info-content::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 4px; }
+.boss-info-content::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+.boss-info-footer {
+    padding: 16px 20px;
+    border-top: 2px solid #334155;
+    flex-shrink: 0;
+    background: rgba(10,5,26,0.5);
+}
 .mi-ico { font-size: 40px; text-align: center; }
 .mi-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px dashed #334155; }
 .mi-row span { color: #94a3b8; }
@@ -504,7 +582,6 @@ body {
     .chat-panel { grid-column: span 1; height: 220px; }
     .hud { gap: 7px; font-size: 11px; }
     .top-menu h1 { font-size: 16px; }
-    .zoom-bar { right: 8px; top: 8px; }
     .win-body { padding: 10px; }
 }
 </style>
@@ -520,16 +597,7 @@ body {
 <h1><span>🏛️</span> НЕОНОВАЯ ЖИЗНЬ</h1>
 </div>
 
-<!-- МАСШТАБ -->
-<div class="zoom-bar">
-<button onclick="setZoom(player.zoom - 10)" title="Уменьшить">-</button>
-<span class="zval" id="zoomVal">100%</span>
-<button onclick="setZoom(player.zoom + 10)" title="Увеличить">+</button>
-<button onclick="setZoom(100)" title="Сброс масштаба" style="color:#ef4444;">✕</button>
-<button class="admin-btn" onclick="openAdmin()" title="Админ-панель">🔑</button>
-</div>
-
-<!-- HUD -->
+<!-- МАСШТАБ (перенесён в нижнее меню) -->
 <div class="hud" id="hud">
     <div class="hud-item">LVL <b id="hudLvl">1</b></div>
     <div class="hud-item">XP <div class="pbar"><div class="pfill xp" id="hudXp"></div></div> <b id="hudXpTxt">0/100</b></div>
@@ -538,6 +606,7 @@ body {
     <div class="hud-item">Очки <b class="purple" id="hudAp">5</b></div>
     <div class="hud-item">Кредиты <b class="gold" id="hudCred">1000</b></div>
     <div class="hud-item">Баксы <b class="green" id="hudBucks">0</b></div>
+    <div class="hud-item">Ресурсы <b class="purple" id="hudRes">🧵0 🔩0 🔌0</b></div>
     <div class="hud-item">Доход <b class="green" id="hudIncome">+0/мин</b></div>
     <div class="hud-item" id="buffBadges"></div>
 </div>
@@ -585,6 +654,11 @@ body {
     <div class="win-body" id="crewBody"></div>
 </div>
 
+<!-- ЭКРАН: ПРОФЕССИИ -->
+<div id="screen-prof" class="screen">
+    <div class="win-body" id="profBody"></div>
+</div>
+
 <!-- ЭКРАН: ГАРАЖ -->
 <div id="screen-garage" class="screen">
     <div class="win-body" id="garageBody"></div>
@@ -621,11 +695,18 @@ body {
 </div>
 
 <!-- НИЖНЕЕ МЕНЮ -->
-<div class="bottom-menu">
+<div class="bottom-menu" id="bottomMenu">
 <button class="menu-btn" onclick="goMain()"><span>🏠</span> Главная</button>
 <button class="menu-btn" onclick="openScreen('character')"><span>👤</span> Персонаж</button>
 <button class="menu-btn" onclick="openScreen('inventory')"><span>💼</span> Сумка</button>
 <button class="menu-btn" onclick="openScreen('help')"><span>❓</span> Помощь</button>
+<div class="zoom-bar">
+    <button onclick="setZoom(player.zoom - 10)" title="Уменьшить">-</button>
+    <span class="zval" id="zoomVal">100%</span>
+    <button onclick="setZoom(player.zoom + 10)" title="Увеличить">+</button>
+    <button onclick="setZoom(100)" title="Сброс масштаба" style="color:#ef4444;">✕</button>
+    <button class="admin-btn" onclick="openAdmin()" title="Админ-панель">🔑</button>
+</div>
 </div>
 
 <!-- ОКНО ПРЕДМЕТА -->
@@ -636,6 +717,30 @@ body {
 <!-- ОКНО ПОДТВЕРЖДЕНИЯ -->
 <div class="modal-overlay" id="confirmModal" onclick="closeConfirmModal()">
     <div class="modal" onclick="event.stopPropagation()" id="confirmModalBox"></div>
+</div>
+
+<!-- ОКНО РЕЗУЛЬТАТОВ БОЯ -->
+<div class="modal-overlay" id="fightResultModal" onclick="closeFightResultModal()">
+    <div class="modal" onclick="event.stopPropagation()" id="fightResultModalBox"></div>
+</div>
+
+<!-- ОКНО ОПИСАНИЯ СПОСОБНОСТЕЙ БОССОВ -->
+<div class="modal-overlay boss-abil-overlay" id="bossAbilModal" onclick="closeBossAbil()">
+    <div class="boss-abil-box" onclick="event.stopPropagation()" id="bossAbilBox"></div>
+</div>
+
+<!-- ОКНО ОПИСАНИЯ СПОСОБНОСТЕЙ БОССОВ -->
+<div class="boss-info-overlay" id="bossInfoOverlay" onclick="closeBossInfo()">
+    <div class="boss-info-box" onclick="event.stopPropagation()">
+        <div class="boss-info-header">
+            <div class="mi-ico">⚔️</div>
+            <h3>СПОСОБНОСТИ БОССОВ</h3>
+        </div>
+        <div class="boss-info-content" id="bossInfoContent"></div>
+        <div class="boss-info-footer">
+            <button class="action-btn good" onclick="closeBossInfo()">Закрыть</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -680,7 +785,10 @@ const ITEMS = {
         {id:'aviators', name:'Авиаторы', icon:'🕶️', color:'#d4d4d8', slot:'head', price:1400, dodge:15},
         {id:'earring', name:'Серьга', icon:'💎', color:'#0ea5e9', slot:'head', price:1800, armor:6, crit:8},
         {id:'gold_teeth', name:'Золотые зубы', icon:'🦷', color:'#facc15', slot:'head', price:2200, crit:10},
-        {id:'dog_tag', name:'Жетон', icon:'🏷️', color:'#a1a1aa', slot:'neck', price:1800, armor:10, crit:6}
+        {id:'dog_tag', name:'Жетон', icon:'🏷️', color:'#a1a1aa', slot:'neck', price:1800, armor:10, crit:6},
+        {id:'craft_mod_t1', name:'Кибер-модуль низший', icon:'📿', color:'#0891b2', slot:'neck', price:9000, pct:5, craftOnly:true},
+        {id:'craft_mod_t2', name:'Кибер-модуль обычный', icon:'📿', color:'#06b6d4', slot:'neck', price:15000, pct:15, craftOnly:true},
+        {id:'craft_mod_t3', name:'Кибер-модуль высший', icon:'📿', color:'#38bdf8', slot:'neck', price:24000, pct:30, craftOnly:true}
     ],
     consumable: [
         {id:'energ', name:'Энергетик', icon:'🥤', price:40, energy:30},
@@ -708,11 +816,11 @@ const UPGRADES = [
 const UPGRADE_MAX = 30;
 
 const BOOSTERS = [
-    {id:'b_dmg', name:'Злость', icon:'💢', desc:'Урон +50 на 60 сек', price:250, key:'dmg', amt:50, dur:60},
-    {id:'b_armor', name:'Защита', icon:'🧱', desc:'Броня +40 на 60 сек', price:250, key:'armor', amt:40, dur:60},
-    {id:'b_crit', name:'Глаз хищника', icon:'👁️', desc:'Крит +30 на 60 сек', price:300, key:'crit', amt:30, dur:60},
+    {id:'b_dmg', name:'Злость', icon:'💢', desc:'Урон +50% на 180 сек', price:250, key:'dmg', amt:50, dur:180},
+    {id:'b_armor', name:'Защита', icon:'🧱', desc:'Броня +40% на 180 сек', price:250, key:'armor', amt:40, dur:180},
+    {id:'b_crit', name:'Глаз хищника', icon:'👁️', desc:'Крит +30% на 180 сек', price:300, key:'crit', amt:30, dur:180},
     {id:'b_energy', name:'Второе дыхание', icon:'🔋', desc:'Энергия +100 мгновенно', price:150, key:'energy', amt:100, dur:0},
-    {id:'b_dodge', name:'Тень', icon:'🏃', desc:'Уклонение +25 на 60 сек', price:250, key:'dodge', amt:25, dur:60}
+    {id:'b_dodge', name:'Тень', icon:'🏃', desc:'Уклонение +25% на 180 сек', price:250, key:'dodge', amt:25, dur:180}
 ];
 
 const AP_STATS = [
@@ -787,11 +895,51 @@ const CREW = [
     {id:'foreman', name:'Завод', icon:'🏭', cost:2000, costForever:200000, income:13}
 ];
 
+const RESOURCES = [
+    {id:'fabric', name:'Ткань', icon:'🧵'},
+    {id:'metalwork', name:'Металл.изделия', icon:'🔩'},
+    {id:'electronics', name:'Электроника', icon:'🔌'}
+];
+
+const PROFESSIONS = [
+    {id:'tailor', name:'Портной', icon:'🧵', desc:'Добывает ткань 🧵 и собирает кибер-модули. Для сборки нужны металл ⚙️ от кузнеца и электроника 🔌 от техника — сырьё добывается и передаётся через обмен с мастерами.', res:['fabric'], base:1, mult:1.7, max:20},
+    {id:'smith', name:'Кузнец', icon:'🔨', desc:'Добывает металл ⚙️ и собирает кибер-модули. В корпус добавляет ткань 🧵 от портного и электронику 🔌 от техника.', res:['metalwork'], base:1, mult:1.7, max:20},
+    {id:'tech', name:'Техник', icon:'🔧', desc:'Добывает электронику 🔌 и собирает кибер-модули. Для сборки нужны металл ⚙️ от кузнеца и ткань 🧵 от портного.', res:['electronics'], base:1, mult:1.7, max:20}
+];
+
+const RES_PRICES = {
+    fabric: {sell:1000, buy:200},
+    metalwork: {sell:1000, buy:200},
+    electronics: {sell:1000, buy:200}
+};
+
+const CRAFTING = [
+    {id:'craft_mod_tailor_t1', prof:'tailor', name:'Кибер-модуль низший', icon:'📿', tier:1, needLvl:1, energy:10,
+     res:{fabric:500, metalwork:500, electronics:1000}, need:null, item:'craft_mod_t1'},
+    {id:'craft_mod_tailor_t2', prof:'tailor', name:'Кибер-модуль обычный', icon:'📿', tier:2, needLvl:5, energy:20,
+     res:{fabric:750, metalwork:750, electronics:2000}, need:'craft_mod_t1', item:'craft_mod_t2'},
+    {id:'craft_mod_tailor_t3', prof:'tailor', name:'Кибер-модуль высший', icon:'📿', tier:3, needLvl:10, energy:30,
+     res:{fabric:1350, metalwork:1350, electronics:5000}, need:'craft_mod_t2', item:'craft_mod_t3'},
+    {id:'craft_mod_smith_t1', prof:'smith', name:'Кибер-модуль низший', icon:'📿', tier:1, needLvl:1, energy:10,
+     res:{fabric:500, metalwork:500, electronics:1000}, need:null, item:'craft_mod_t1'},
+    {id:'craft_mod_smith_t2', prof:'smith', name:'Кибер-модуль обычный', icon:'📿', tier:2, needLvl:5, energy:20,
+     res:{fabric:750, metalwork:750, electronics:2000}, need:'craft_mod_t1', item:'craft_mod_t2'},
+    {id:'craft_mod_smith_t3', prof:'smith', name:'Кибер-модуль высший', icon:'📿', tier:3, needLvl:10, energy:30,
+     res:{fabric:1350, metalwork:1350, electronics:5000}, need:'craft_mod_t2', item:'craft_mod_t3'},
+    {id:'craft_mod_tech_t1', prof:'tech', name:'Кибер-модуль низший', icon:'📿', tier:1, needLvl:1, energy:10,
+     res:{fabric:500, metalwork:500, electronics:1000}, need:null, item:'craft_mod_t1'},
+    {id:'craft_mod_tech_t2', prof:'tech', name:'Кибер-модуль обычный', icon:'📿', tier:2, needLvl:5, energy:20,
+     res:{fabric:750, metalwork:750, electronics:2000}, need:'craft_mod_t1', item:'craft_mod_t2'},
+    {id:'craft_mod_tech_t3', prof:'tech', name:'Кибер-модуль высший', icon:'📿', tier:3, needLvl:10, energy:30,
+     res:{fabric:1350, metalwork:1350, electronics:5000}, need:'craft_mod_t2', item:'craft_mod_t3'}
+];
+
 const CARS = [
-    {id:'bike', name:'Мопед Оса', icon:'🛵', price:300, energyMax:10, dmg:0, crit:1, regen:0},
-    {id:'sedan', name:'Нива Корч', icon:'🚙', price:1200, energyMax:20, dmg:5, crit:0, regen:1},
-    {id:'muscle', name:'Додж Бык', icon:'🏎️', price:4000, energyMax:30, dmg:8, crit:5, regen:1},
-    {id:'sport', name:'Суперкар Молния', icon:'🚀', price:12000, energyMax:50, dmg:12, crit:10, regen:2}
+    {id:'thunder', name:'Гром', icon:'🏍️', rentBucks:5, energyMax:20, dmg:8, armor:10, dodge:3, crit:2, hpBonus:100, regen:0.8, xpMul:1.5},
+    {id:'fortress', name:'Крепость', icon:'🚙', rentBucks:15, energyMax:35, dmg:12, armor:25, dodge:5, crit:3, hpBonus:250, regen:1.2, xpMul:1.7},
+    {id:'phantom', name:'Призрак', icon:'🏎️', rentBucks:30, energyMax:45, dmg:22, armor:15, dodge:8, crit:8, hpBonus:150, regen:1.8, xpMul:2.0},
+    {id:'chrome', name:'Хром', icon:'🚀', rentBucks:50, energyMax:60, dmg:30, armor:20, dodge:12, crit:12, hpBonus:300, regen:2.5, xpMul:2.5},
+    {id:'legend', name:'Легенда', icon:'👑', rentBucks:80, energyMax:80, dmg:45, armor:30, dodge:15, crit:18, hpBonus:500, regen:3.5, xpMul:3.0}
 ];
 
 const BANK_DEALS = [
@@ -803,25 +951,19 @@ const BANK_DEALS = [
 ];
 
 const TATTOOS = [
-    {id:'tat_star', name:'Звезда вора', icon:'⭐', price:500},
-    {id:'tat_tear', name:'Слеза', icon:'💧', price:700},
-    {id:'tat_spider', name:'Паук', icon:'🕷️', price:900},
-    {id:'tat_cross', name:'Купола', icon:'⛪', price:1200},
-    {id:'tat_skull', name:'Череп', icon:'💀', price:1500},
-    {id:'tat_rose', name:'Роза', icon:'🌹', price:2000},
-    {id:'tat_dragon', name:'Дракон', icon:'🐉', price:3000},
-    {id:'tat_crown', name:'Корона', icon:'👑', price:5000}
+    {id:'tat_dmg_volk', name:'Волк', icon:'🐺', stat:'dmg', pct:5, price:10000},
+    {id:'tat_armor_shit', name:'Щит', icon:'🛡️', stat:'armor', pct:5, price:10000},
+    {id:'tat_hp_serdce', name:'Сердце', icon:'❤️', stat:'hp', pct:5, price:10000},
+    {id:'tat_dodge_moln', name:'Молния', icon:'⚡', stat:'dodge', pct:5, price:10000},
+    {id:'tat_crit_glaz', name:'Глаз', icon:'👁️', stat:'crit', pct:5, price:10000}
 ];
 
 const HAIRSTYLES = [
-    {id:'hair_short', name:'Ежик', icon:'✂️', price:300},
-    {id:'hair_razor', name:'Под ноль', icon:'🪒', price:400},
-    {id:'hair_mohawk', name:'Ирокез', icon:'🦅', price:800},
-    {id:'hair_long', name:'Длинные волосы', icon:'💇', price:1000},
-    {id:'hair_quiff', name:'Кок', icon:'🎩', price:1500},
-    {id:'hair_dread', name:'Дреды', icon:'🧟', price:2500},
-    {id:'hair_pompadour', name:'Помпадур', icon:'💈', price:3500},
-    {id:'hair_gold', name:'Золотая укладка', icon:'✨', price:5000}
+    {id:'hair_dmg_irokez', name:'Ирокез', icon:'🦅', stat:'dmg', pct:5, price:10000},
+    {id:'hair_armor_kaska', name:'Каска', icon:'⛑️', stat:'armor', pct:5, price:10000},
+    {id:'hair_hp_objem', name:'Объём', icon:'💇', stat:'hp', pct:5, price:10000},
+    {id:'hair_dodge_veter', name:'Ветер', icon:'🌬️', stat:'dodge', pct:5, price:10000},
+    {id:'hair_crit_snayper', name:'Снайперский кок', icon:'🎯', stat:'crit', pct:5, price:10000}
 ];
 
 const DAILY_REWARDS = [500,1000,1500,2000,2500,3500,5000];
@@ -832,7 +974,7 @@ const DEFAULT_PLAYER = {
     nickSet:false,
     level:1, exp:0, expNext:100,
     hp:1000, energy:250,
-    credits:1000, bucks:0,
+    credits:5000, bucks:0,
     ap:5,
     apStats:{dmg:0, armor:0, hp:0, dodge:0, crit:0},
     cls:'defender',
@@ -843,8 +985,11 @@ const DEFAULT_PLAYER = {
     equipped:{}, inventory:[], cosmetics:[],
     location:'yard', robActive:false, robStage:0, robberyUntil:0, robEvents:[],
     districtControl:45,
-    ownedCars:[],
+    rentedCar:{id:null, until:0},
     upgrades:{dmg:0,hp:0,dodge:0,crit:0,energy:0},
+    prof:{id:null, lvl:0},
+    resources:{fabric:0, metalwork:0, electronics:0},
+    gatherCd:0,
     crew:{thug:0,driver:0,lookout:0,foreman:0},
     crewRent:{id:null, until:0},
     bank:{amount:0,until:0,rate:0,label:''},
@@ -900,6 +1045,7 @@ function itemStatsHtml(itm) {
     if (itm.heal) parts.push('Лечит: +' + fmtNum(itm.heal) + ' HP');
     if (itm.energy) parts.push('Энергия: +' + fmtNum(itm.energy));
     if (itm.buff) parts.push('Буст: +' + itm.buffAmt + ' (' + itm.buffDur + 'с)');
+    if (itm.pct) parts.push('Бонус: +' + itm.pct + '% к статам персонажа');
     return parts.map(p => '<small>' + p + '</small>').join('');
 }
 function buffActive(key) { return player.buffs[key] && Date.now() < player.buffs[key].until; }
@@ -907,12 +1053,12 @@ function buffActive(key) { return player.buffs[key] && Date.now() < player.buffs
 // ============================ РАСЧЁТ ХАРАКТЕРИСТИК ============================
 
 function carBonus() {
-    let best = null;
-    (player.ownedCars || []).forEach(id => {
-        const c = CARS.find(x => x.id === id);
-        if (c && (!best || c.price > best.price)) best = c;
-    });
-    return best || {id:null, name:'Пешком', icon:'🚶', energyMax:0, dmg:0, crit:0, regen:0};
+    const rc = player.rentedCar || {id:null, until:0};
+    if (rc.id && rc.until > Date.now()) {
+        const c = CARS.find(x => x.id === rc.id);
+        if (c) return c;
+    }
+    return {id:null, name:'Пешком', icon:'🚶', energyMax:0, dmg:0, armor:0, dodge:0, crit:0, hpBonus:0, regen:0, xpMul:1};
 }
 
 function gearSum(stat) {
@@ -923,6 +1069,24 @@ function gearSum(stat) {
     });
     return s;
 }
+
+function gearPctSum() {
+    let s = 0;
+    Object.values(player.equipped).forEach(id => {
+        const itm = findItem(id);
+        if (itm && itm.pct) s += itm.pct;
+    });
+    return s;
+}
+function gearPctMul() { return 1 + gearPctSum() / 100; }
+
+function cosmeticPctSum(stat) {
+    let s = 0;
+    const owned = [...TATTOOS, ...HAIRSTYLES].filter(c => player.cosmetics.includes(c.id));
+    owned.forEach(c => { if (c.stat === stat && c.pct) s += c.pct; });
+    return s;
+}
+function cosmeticMul(stat) { return 1 + cosmeticPctSum(stat) / 100; }
 
 function apMul(stat) { return 1 + player.apStats[stat] / 100; }
 function classMul(stat) {
@@ -936,42 +1100,42 @@ function classBonusTxt(stat) {
     return '';
 }
 
-function maxHp() { return Math.round((1000 + (player.level - 1) * 100 + player.upgrades.hp * 25 + gearSum('hpBonus')) * apMul('hp') * classMul('hp') * (1 + upgradePct('hp') / 100)); }
-function maxEnergy() { return Math.round((250 + (player.level - 1) * 15 + (player.upgrades.energy || 0) * 10 + carBonus().energyMax) * classMul('energy') * (1 + upgradePct('energy') / 100)); }
+function maxHp() { return Math.round((1000 + (player.level - 1) * 100 + player.upgrades.hp * 25 + gearSum('hpBonus') + carBonus().hpBonus) * apMul('hp') * classMul('hp') * (1 + upgradePct('hp') / 100) * gearPctMul() * cosmeticMul('hp')); }
+function maxEnergy() { return Math.round((250 + (player.level - 1) * 15 + (player.upgrades.energy || 0) * 10 + carBonus().energyMax) * classMul('energy') * (1 + upgradePct('energy') / 100) * gearPctMul()); }
 function getDmg() {
     let d = (20 + player.level * 3 + player.upgrades.dmg * 3 + gearSum('dmg') + carBonus().dmg) * apMul('dmg');
-    if (buffActive('dmg')) d += player.buffs.dmg.amt;
-    return Math.round(d * classMul('dmg') * (1 + upgradePct('dmg') / 100));
+    if (buffActive('dmg')) d *= (1 + player.buffs.dmg.amt / 100);
+    return Math.round(d * classMul('dmg') * (1 + upgradePct('dmg') / 100) * gearPctMul() * cosmeticMul('dmg'));
 }
 function baseArmor() {
-    let a = gearSum('armor') * apMul('armor');
-    if (buffActive('armor')) a += player.buffs.armor.amt;
+    let a = (gearSum('armor') + carBonus().armor) * apMul('armor');
+    if (buffActive('armor')) a *= (1 + player.buffs.armor.amt / 100);
     return a;
 }
 function getArmor() {
     let a = baseArmor();
     if (Date.now() < (player.classShield.until || 0)) a += player.classShield.amt;
-    return Math.round(a * classMul('armor') * (1 + upgradePct('armor') / 100));
+    return Math.round(a * classMul('armor') * (1 + upgradePct('armor') / 100) * gearPctMul() * cosmeticMul('armor'));
 }
 function baseDodge() {
-    let d = (gearSum('dodge') + player.upgrades.dodge * 2) * apMul('dodge');
-    if (buffActive('dodge')) d += player.buffs.dodge.amt;
+    let d = (gearSum('dodge') + player.upgrades.dodge * 2 + carBonus().dodge) * apMul('dodge');
+    if (buffActive('dodge')) d *= (1 + player.buffs.dodge.amt / 100);
     return d;
 }
 function getDodge() {
     let d = baseDodge();
     if (Date.now() < (player.classRogue.until || 0)) d += player.classRogue.dodge;
-    return Math.round(d * classMul('dodge') * (1 + upgradePct('dodge') / 100));
+    return Math.round(d * classMul('dodge') * (1 + upgradePct('dodge') / 100) * gearPctMul() * cosmeticMul('dodge'));
 }
 function baseCrit() {
     let c = (gearSum('crit') + player.upgrades.crit * 2 + carBonus().crit) * apMul('crit');
-    if (buffActive('crit')) c += player.buffs.crit.amt;
+    if (buffActive('crit')) c *= (1 + player.buffs.crit.amt / 100);
     return c;
 }
 function getCrit() {
     let c = baseCrit();
     if (Date.now() < (player.classRogue.until || 0)) c += player.classRogue.crit;
-    return Math.round(c * classMul('crit') * (1 + upgradePct('crit') / 100));
+    return Math.round(c * classMul('crit') * (1 + upgradePct('crit') / 100) * gearPctMul() * cosmeticMul('crit'));
 }
 function crewPerMin() {
     let inc = player.crew.thug * 1 + player.crew.driver * 3 + player.crew.lookout * 8 + player.crew.foreman * 13;
@@ -981,6 +1145,29 @@ function crewPerMin() {
     }
     return inc;
 }
+function profPerDay() {
+    if (!player.prof || !player.prof.id) return 0;
+    const lvl = player.prof.lvl || 0;
+    if (lvl <= 0) return 0;
+    return 1 + (lvl - 1) * 9 / 19;
+}
+function profResourcesPerDay() {
+    const p = player.prof && player.prof.id ? PROFESSIONS.find(x => x.id === player.prof.id) : null;
+    const amt = profPerDay();
+    if (!p || amt <= 0) return [];
+    return p.res.map(r => ({res: r, amt: amt}));
+}
+function resInfo(id) { return RESOURCES.find(x => x.id === id); }
+function profIncomeTxt() {
+    const arr = profResourcesPerDay();
+    if (!arr.length) return 'нет';
+    return arr.map(r => resInfo(r.res).icon + ' ' + resInfo(r.res).name + ' +' + fmtDec(r.amt) + '/сутки').join(' ');
+}
+function profResLabel(p) { return p.res.map(r => resInfo(r).icon + ' ' + resInfo(r).name).join(', '); }
+function profCost(p) {
+    const c = p.base * Math.pow(p.mult, player.prof.lvl || 0);
+    return Math.max(1, Math.ceil(c / 5) * 5);
+}
 function regenPerSec() { return (1 + carBonus().regen * 0.4) / 15; }
 function niceRound(n) {
     if (n < 10000) return Math.floor(n / 100) * 100;
@@ -988,6 +1175,7 @@ function niceRound(n) {
     return Math.floor(n / 5000) * 5000;
 }
 function fmtNum(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0'); }
+function fmtDec(n) { return String(Math.round(n * 100) / 100).replace('.', ','); }
 function upgradeCost(u) { return niceRound(Math.round(u.base * Math.pow(u.mult, player.upgrades[u.stat]))); }
 function upgradePct(stat) { return Math.floor((player.upgrades[stat] || 0) / UPGRADE_MAX * 100); }
 
@@ -999,8 +1187,16 @@ function openScreen(id) {
     document.getElementById('screen-' + id).classList.add('active');
     window.scrollTo(0, 0);
     refresh();
+    updateBottomMenu();
 }
 function goMain() { openScreen('main'); }
+
+function updateBottomMenu() {
+    const menu = document.getElementById('bottomMenu');
+    if (menu) menu.classList.add('show');
+}
+window.addEventListener('scroll', updateBottomMenu, {passive:true});
+window.addEventListener('load', updateBottomMenu);
 
 function setZoom(z) {
     player.zoom = clamp(z, 60, 160);
@@ -1033,9 +1229,19 @@ function loadGame() {
     player.equipped = player.equipped || {};
     player.upgrades = Object.assign({dmg:0,hp:0,dodge:0,crit:0,energy:0}, player.upgrades);
     player.crew = Object.assign({thug:0,driver:0,lookout:0,foreman:0}, player.crew);
+    player.profs = Object.assign({tailor:0,smith:0,tech:0}, player.profs);
+    player.resources = Object.assign({fabric:0, metalwork:0, electronics:0}, player.resources);
+    player.gatherCd = player.gatherCd || 0;
+    if (player.profs && Object.values(player.profs).some(v => v > 0) && (!player.prof || !player.prof.id)) {
+        let best = null;
+        PROFESSIONS.forEach(p => { if ((player.profs[p.id] || 0) > 0 && (!best || player.profs[p.id] > player.profs[best])) best = p.id; });
+        if (best) player.prof = {id: best, lvl: player.profs[best] || 0};
+    }
+    player.prof = player.prof && player.prof.id ? {id: player.prof.id, lvl: player.prof.lvl || 0} : {id:null, lvl:0};
+    if (player.prof.id && !PROFESSIONS.find(x => x.id === player.prof.id)) player.prof = {id:null, lvl:0};
     player.crewRent = player.crewRent || {id:null, until:0};
     player.bank = player.bank || {amount:0,until:0,rate:0,label:''};
-    player.ownedCars = player.ownedCars || [];
+    player.rentedCar = player.rentedCar || {id:null, until:0};
     player.apStats = Object.assign({dmg:0, armor:0, hp:0, dodge:0, crit:0}, player.apStats);
     player.buffs = Object.assign({dmg:{amt:0,until:0}, armor:{amt:0,until:0}, crit:{amt:0,until:0}, dodge:{amt:0,until:0}}, player.buffs);
     player.robTarget = player.robTarget || 0;
@@ -1060,7 +1266,7 @@ function loadGame() {
     applyZoom();
     try { refresh(); } catch (e) { try { renderMain(); } catch (e2) {} }
     if (!data) {
-        addToChat('[Система] Добро пожаловать, братан! На счету 1000 кредитов и 5 очков действия. Кнопка «Помощь» — внизу.');
+        addToChat('[Система] Добро пожаловать, братан! На счету 5000 кредитов и 5 очков действия. Кнопка «Помощь» — внизу.');
         addToChat('[Система] Трать очки действия в «Персонаже»: каждое очко даёт +1% к характеристике.');
     }
     setInterval(tick, 1000);
@@ -1076,7 +1282,16 @@ function applyOffline() {
     const enGain = Math.floor(regenPerSec() * away);
     if (enGain > 0) { player.energy = Math.min(maxEnergy(), player.energy + enGain); log += 'Энергия +' + fmtNum(enGain) + '. '; }
     const inc = crewPerMin() * away / 60;
-    if (inc > 1) { const g = Math.floor(inc); player.credits += g; log += 'Доход банды +' + fmtNum(g) + ' кр.'; }
+    if (inc > 1) { const g = Math.floor(inc); player.credits += g; log += 'Доход банды +' + fmtNum(g) + ' кр. '; }
+    const pd = profResourcesPerDay();
+    if (pd.length) {
+        let parts = [];
+        pd.forEach(r => {
+            const g = r.amt * away / 86400;
+            if (g >= 0.05) { const gi = Math.floor(g); player.resources[r.res] += gi; parts.push(resInfo(r.res).icon + ' ' + resInfo(r.res).name + ' +' + fmtNum(gi)); }
+        });
+        if (parts.length) log += 'Доход профессий: ' + parts.join(', ') + '. ';
+    }
     addToChat(log);
     if (player.bank.amount && player.bank.until <= now) claimBank(true);
 }
@@ -1141,6 +1356,7 @@ function refresh() {
         case 'work': renderWork(); break;
         case 'bank': renderBank(); break;
         case 'crew': renderCrew(); break;
+        case 'prof': renderProf(); break;
         case 'garage': renderGarage(); break;
         case 'casino': renderCasino(); break;
         case 'shop': renderShop(); break;
@@ -1161,13 +1377,14 @@ function updateHud() {
     document.getElementById('hudEnTxt').textContent = fmtNum(Math.floor(player.energy)) + '/' + fmtNum(maxEnergy());
     document.getElementById('hudAp').textContent = player.ap;
     document.getElementById('hudCred').textContent = fmtNum(Math.floor(player.credits));
-    document.getElementById('hudBucks').textContent = fmtNum(player.bucks);
+    document.getElementById('hudBucks').textContent = fmtNum(Math.floor(player.bucks));
+    document.getElementById('hudRes').innerHTML = RESOURCES.map(r => r.icon + ' ' + fmtNum(Math.floor(player.resources[r.id]))).join(' ');
     document.getElementById('hudIncome').textContent = '+' + fmtNum(crewPerMin()) + '/мин';
     let badges = '';
-    if (buffActive('dmg')) badges += '<span class="buff-badge">💢 урон +' + player.buffs.dmg.amt + ' ' + fmtTime((player.buffs.dmg.until - Date.now()) / 1000) + '</span>';
-    if (buffActive('armor')) badges += '<span class="buff-badge">🧱 броня +' + player.buffs.armor.amt + ' ' + fmtTime((player.buffs.armor.until - Date.now()) / 1000) + '</span>';
-    if (buffActive('crit')) badges += '<span class="buff-badge">🎯 крит +' + player.buffs.crit.amt + ' ' + fmtTime((player.buffs.crit.until - Date.now()) / 1000) + '</span>';
-    if (buffActive('dodge')) badges += '<span class="buff-badge">🏃 уклонение +' + player.buffs.dodge.amt + ' ' + fmtTime((player.buffs.dodge.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('dmg')) badges += '<span class="buff-badge">💢 урон +' + player.buffs.dmg.amt + '% ' + fmtTime((player.buffs.dmg.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('armor')) badges += '<span class="buff-badge">🧱 броня +' + player.buffs.armor.amt + '% ' + fmtTime((player.buffs.armor.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('crit')) badges += '<span class="buff-badge">🎯 крит +' + player.buffs.crit.amt + '% ' + fmtTime((player.buffs.crit.until - Date.now()) / 1000) + '</span>';
+    if (buffActive('dodge')) badges += '<span class="buff-badge">🏃 уклонение +' + player.buffs.dodge.amt + '% ' + fmtTime((player.buffs.dodge.until - Date.now()) / 1000) + '</span>';
     if (Date.now() < (player.classShield.until || 0)) badges += '<span class="buff-badge">' + SQ_SHIELD + ' щит +' + player.classShield.amt + ' ' + fmtTime((player.classShield.until - Date.now()) / 1000) + '</span>';
     if (Date.now() < (player.classRogue.until || 0)) badges += '<span class="buff-badge">🏃 уворот +' + player.classRogue.dodge + '% / 🎯 +' + player.classRogue.crit + '% ' + fmtTime((player.classRogue.until - Date.now()) / 1000) + '</span>';
     document.getElementById('buffBadges').innerHTML = badges;
@@ -1185,6 +1402,8 @@ function renderMain() {
         {scr:'robbery', icon:'🤝', title:'Связи', sub: (player.robberyUntil - Date.now()) > 0 ? 'Перерыв: <span class="cd">' + fmtTime((player.robberyUntil - Date.now()) / 1000) + '</span><br>Договариваться можно 1 раз в час' : 'Цепочка из 10 целей<br>Шанс каждого 75% • Старт: 20 эн.', open:'Начать переговоры'},
         {scr:'work', icon:'💼', title:'Подработка', sub:'Курьер, грузчик, охранник<br>Задания дешевле по энергии', open:'Найти работу'},
         {scr:'crew', icon:'🏢', title:'Бизнес', sub:'Доход: <b class="green">+' + fmtNum(crewPerMin()) + ' кр/мин</b><br>Работники трудятся даже в оффлайне', open:'Нанять работников'},
+        {scr:'prof', icon:'💼', title:'Профессии', sub:'Доход: <b class="green">' + profIncomeTxt() + '</b><br>Одна профессия на всю игру, прокачка за баксы', open:'Выбрать профессию'},
+        {scr:'garage', icon:'🚗', title:'Гараж', sub: (player.rentedCar && player.rentedCar.id && player.rentedCar.until > Date.now()) ? 'Аренда: <b class="green">' + (CARS.find(x=>x.id===player.rentedCar.id)||{}).name + '</b><br>Бонусы: урон, броня, ХП, реген, x' + ((CARS.find(x=>x.id===player.rentedCar.id)||{}).xpMul||1) + ' опыт' : 'Аренда тачки за баксы<br>Бонусы к статам и опыту', open:'Открыть гараж'},
         {scr:'shop', icon:'🛒', title:'Магазин', sub:'Кредитов: <b class="gold">' + fmtNum(Math.floor(player.credits)) + '</b><br>Оружие, броня, бустеры', open:'Открыть магазин'},
         {scr:'bank', icon:'🏦', title:'Банк', sub: player.bank.amount > 0 ? 'Вклад: <b class="gold">' + fmtNum(player.bank.amount) + ' кр</b>' : 'Вклады от 8% до 25%', open:'Вложить кредиты'},
         {scr:'casino', icon:'🎰', title:'Казино', sub:'Кости и орлянка<br>Джекпот на двух шестерках', open:'Сыграть'}
@@ -1227,6 +1446,7 @@ function openItemModal(id) {
     if (itm.heal) rows += '<div class="mi-row"><span>Лечение</span><b>+' + itm.heal + ' HP</b></div>';
     if (itm.energy) rows += '<div class="mi-row"><span>Энергия</span><b>+' + itm.energy + '</b></div>';
     if (itm.buff) rows += '<div class="mi-row"><span>Буст</span><b>+' + itm.buffAmt + ' на ' + itm.buffDur + 'с</b></div>';
+    if (itm.pct) rows += '<div class="mi-row"><span>Бонус</span><b>+' + itm.pct + '% к статам персонажа</b></div>';
     rows += '<button class="action-btn good" style="margin-top:12px;" onclick="unequipSlot(\'' + itm.slot + '\');closeItemModal();">🎽 Снять</button>';
     rows += '<button class="action-btn" onclick="closeItemModal()">Закрыть</button>';
     document.getElementById('itemModalBox').innerHTML = rows;
@@ -1269,15 +1489,18 @@ function renderCharacter() {
     const hpBase = 1000 + (player.level - 1) * 100;
     const hpUpg = player.upgrades.hp * 25;
     const hpGear = gearSum('hpBonus');
+    const hpCar = cb.hpBonus;
     const hpMult = apMul('hp');
     const enBase = 250 + (player.level - 1) * 15;
     const enUpg = player.upgrades.energy * 10;
     const enCar = cb.energyMax;
     const armorGear = gearSum('armor');
+    const armorCar = cb.armor;
     const armorMult = apMul('armor');
     const armorBuff = buffActive('armor') ? player.buffs.armor.amt : 0;
     const armorShield = Date.now() < (player.classShield.until || 0) ? player.classShield.amt : 0;
     const dodgeGear = gearSum('dodge');
+    const dodgeCar = cb.dodge;
     const dodgeUpg = player.upgrades.dodge * 2;
     const dodgeMult = apMul('dodge');
     const dodgeBuff = buffActive('dodge') ? player.buffs.dodge.amt : 0;
@@ -1291,6 +1514,8 @@ function renderCharacter() {
     const statChip = (title, parts) =>
         '<div class="stat-chip">' + title + '<br><span style="color:#64748b;font-size:9px;line-height:1.5;">' + parts.filter(Boolean).join(' • ') + '</span></div>';
     const prcBonus = m => m > 1 ? 'бонус: +' + Math.round((m - 1) * 100) + '% (очки/тату/прически)' : '';
+    const gPct = gearPctSum();
+    const gPctTxt = gPct ? 'собранные вещи: +' + gPct + '%' : '';
     const dNow = new Date();
     const dToday = dNow.getFullYear() + '-' + String(dNow.getMonth() + 1).padStart(2, '0') + '-' + String(dNow.getDate()).padStart(2, '0');
     const dWk = weekKey(dNow);
@@ -1314,24 +1539,27 @@ function renderCharacter() {
         '<div id="bm-daily"></div>' +
     '</div>';
     html += '<div class="panel"><h3>📊 Характеристики</h3>' +
-        '<div class="hint" style="margin-bottom:6px;">Бонус в характеристиках делится так: <b class="green">очки действия</b> дают +1% за вложенное очко, а каждая купленная <b class="green">тату/прическа</b> — +5% к выбранной при покупке характеристике (см. «бонус (очки/тату/прически)»).</div>' +
+        '<div class="hint" style="margin-bottom:6px;">Бонус в характеристиках делится так: <b class="green">очки действия</b> дают +1% за вложенное очко, а каждая купленная <b class="green">тату/прическа</b> — +5% к своей характеристике (см. «бонус (очки/тату/прически)»).</div>' +
         '<div class="stats-grid">' +
         statChip('❤️ Здоровье <b>' + fmtNum(Math.floor(player.hp)) + '/' + fmtNum(maxHp()) + '</b>',
-            ['родной: ' + fmtNum(hpBase), hpUpg ? 'качалка: +' + fmtNum(hpUpg) : '', hpGear ? 'экип: +' + fmtNum(hpGear) : '', prcBonus(hpMult), classBonusTxt('hp')]) +
+            ['родной: ' + fmtNum(hpBase), hpUpg ? 'качалка: +' + fmtNum(hpUpg) : '', hpGear ? 'экип: +' + fmtNum(hpGear) : '', hpCar ? 'тачка: +' + fmtNum(hpCar) : '', prcBonus(hpMult), gPctTxt, classBonusTxt('hp')]) +
         statChip('⚡ Энергия <b>' + fmtNum(Math.floor(player.energy)) + '/' + fmtNum(maxEnergy()) + '</b>',
-            ['родная: ' + fmtNum(enBase), enUpg ? 'качалка: +' + fmtNum(enUpg) : '', enCar ? 'машина: +' + fmtNum(enCar) : '', classBonusTxt('energy')]) +
+            ['родная: ' + fmtNum(enBase), enUpg ? 'качалка: +' + fmtNum(enUpg) : '', enCar ? 'машина: +' + fmtNum(enCar) : '', gPctTxt, classBonusTxt('energy')]) +
         statChip('💢 Урон <b>' + fmtNum(getDmg()) + '</b>',
-            ['родной: ' + fmtNum(dmgBase), dmgUpg ? 'качалка: +' + fmtNum(dmgUpg) : '', dmgGear ? 'экип: +' + fmtNum(dmgGear) : '', dmgCar ? 'машина: +' + fmtNum(dmgCar) : '', prcBonus(dmgMult), dmgBuff ? 'буст: +' + fmtNum(dmgBuff) : '', classBonusTxt('dmg')]) +
+            ['родной: ' + fmtNum(dmgBase), dmgUpg ? 'качалка: +' + fmtNum(dmgUpg) : '', dmgGear ? 'экип: +' + fmtNum(dmgGear) : '', dmgCar ? 'машина: +' + fmtNum(dmgCar) : '', prcBonus(dmgMult), dmgBuff ? 'буст: +' + fmtNum(dmgBuff) + '%' : '', gPctTxt, classBonusTxt('dmg')]) +
         statChip('🛡️ Броня <b>' + fmtNum(getArmor()) + '</b>',
-            ['родная: 0', armorGear ? 'экип: +' + fmtNum(armorGear) : '', prcBonus(armorMult), armorBuff ? 'буст: +' + fmtNum(armorBuff) : '', armorShield ? 'щит: +' + fmtNum(armorShield) : '', classBonusTxt('armor')]) +
+            ['родная: 0', armorGear ? 'экип: +' + fmtNum(armorGear) : '', armorCar ? 'тачка: +' + fmtNum(armorCar) : '', prcBonus(armorMult), armorBuff ? 'буст: +' + fmtNum(armorBuff) + '%' : '', armorShield ? 'щит: +' + fmtNum(armorShield) : '', gPctTxt, classBonusTxt('armor')]) +
         statChip('🏃 Уклонение <b>' + getDodge() + '%</b>',
-            ['родное: 0', dodgeGear ? 'экип: +' + fmtNum(dodgeGear) : '', dodgeUpg ? 'качалка: +' + fmtNum(dodgeUpg) : '', prcBonus(dodgeMult), dodgeBuff ? 'буст: +' + fmtNum(dodgeBuff) : '', dodgeClass ? 'уворот: +' + fmtNum(dodgeClass) : '', classBonusTxt('dodge')]) +
+            ['родное: 0', dodgeGear ? 'экип: +' + fmtNum(dodgeGear) : '', dodgeCar ? 'тачка: +' + fmtNum(dodgeCar) + '%' : '', dodgeUpg ? 'качалка: +' + fmtNum(dodgeUpg) : '', prcBonus(dodgeMult), dodgeBuff ? 'буст: +' + fmtNum(dodgeBuff) + '%' : '', dodgeClass ? 'уворот: +' + fmtNum(dodgeClass) : '', gPctTxt, classBonusTxt('dodge')]) +
         statChip('🎯 Крит <b>' + getCrit() + '%</b>',
-            ['родной: 0', critGear ? 'экип: +' + fmtNum(critGear) : '', critUpg ? 'качалка: +' + fmtNum(critUpg) : '', critCar ? 'машина: +' + fmtNum(critCar) : '', prcBonus(critMult), critBuff ? 'буст: +' + fmtNum(critBuff) : '', critClass ? 'уворот: +' + fmtNum(critClass) : '', classBonusTxt('crit')]) +
+            ['родной: 0', critGear ? 'экип: +' + fmtNum(critGear) : '', critUpg ? 'качалка: +' + fmtNum(critUpg) : '', critCar ? 'машина: +' + fmtNum(critCar) : '', prcBonus(critMult), critBuff ? 'буст: +' + fmtNum(critBuff) + '%' : '', critClass ? 'уворот: +' + fmtNum(critClass) : '', gPctTxt, classBonusTxt('crit')]) +
         statChip('🏢 Доход <b>+' + fmtNum(crewPerMin()) + ' кр/мин</b>',
             ['грузчик: ' + fmtNum(player.crew.thug) + '/мин', 'таксопарк: ' + fmtNum(player.crew.driver * 3) + '/мин', 'офис: ' + fmtNum(player.crew.lookout * 8) + '/мин', 'завод: ' + fmtNum(player.crew.foreman * 13) + '/мин']) +
+        statChip('💼 Профессия <b>' + (player.prof && player.prof.id ? (PROFESSIONS.find(x => x.id === player.prof.id) || {}).name + ' (ур. ' + (player.prof.lvl || 0) + ')' : 'не выбрана') + '</b>',
+            [player.prof && player.prof.lvl > 0 ? 'доход: ' + profIncomeTxt() : 'выбери в блоке «Профессии»']) +
         statChip('🚗 Тачка <b>' + cb.name + '</b>',
-            cb.id ? ['энергия: +' + fmtNum(cb.energyMax), cb.dmg ? 'урон: +' + fmtNum(cb.dmg) : '', cb.crit ? 'крит: +' + cb.crit + '%' : '', 'реген: +' + cb.regen] : ['бонусов нет']) +
+            cb.id ? ['энергия: +' + fmtNum(cb.energyMax), 'урон: +' + fmtNum(cb.dmg), 'броня: +' + fmtNum(cb.armor), 'уклон: +' + cb.dodge + '%', 'крит: +' + cb.crit + '%', 'хп: +' + fmtNum(cb.hpBonus), 'реген: x' + cb.regen, 'опыт: x' + cb.xpMul] : ['бонусов нет']) +
+        (cb.id ? '<button class="action-btn" onclick="openCarModal()" style="margin-top:4px;">📋 Подробнее о тачке</button>' : '') +
         (ownedTats.length ? ownedTats.map(t => '<div class="stat-chip">💉 Тату: ' + t.name + ' <b>' + t.icon + '</b></div>').join('') : '') +
         (ownedHairs.length ? ownedHairs.map(h => '<div class="stat-chip">💈 Прическа: ' + h.name + ' <b>' + h.icon + '</b></div>').join('') : '') +
     '</div></div>';
@@ -1384,6 +1612,7 @@ function renderCharacter() {
 
     html += '<button class="action-btn good" onclick="openScreen(\'inventory\')"><span>💼</span> Сумка</button>';
     html += '<button class="action-btn good" onclick="saveGame()"><span>💾</span> Сохранить прогресс</button>';
+    html += '<button class="action-btn danger" onclick="resetGame()"><span>🗑️</span> Сбросить игру</button>';
     body.innerHTML = html;
 }
 
@@ -1498,7 +1727,7 @@ function robStage() {
     if (!t) return;
     if (Math.random() * 100 < ROBBERY_SUCCESS) {
         const r = (st + 1) * 100;
-        const e = (st + 1) * 100;
+        const e = Math.round((st + 1) * 100 * carBonus().xpMul);
         player.credits += r;
         player.exp += e;
         robLog('✅ Этап ' + (st + 1) + '/' + ROBBERY_CHAIN.length + ': договорённость с «' + t.name + '» (+' + fmtNum(r) + ' кр, +' + fmtNum(e) + ' XP).');
@@ -1514,7 +1743,7 @@ function robStage() {
         }
     } else {
         const r = Math.round((st + 1) * 100 * 0.1);
-        const e = Math.round((st + 1) * 100 * 0.1);
+        const e = Math.round((st + 1) * 100 * 0.1 * carBonus().xpMul);
         player.credits += r;
         player.exp += e;
         const d = Math.floor(rand(20, 50));
@@ -1575,7 +1804,7 @@ function openBrawlModal(id) {
     rows += '<div class="mi-row"><span>Урон</span><b>' + fmtNum(brawlDmg(b)) + '</b></div>';
     rows += '<div class="mi-row"><span>Стоимость боя</span><b>' + b.cost + ' эн.</b></div>';
     rows += '<div class="mi-row"><span>Награда</span><b>' + fmtNum(brawlReward(b)) + ' кр.</b></div>';
-    rows += '<div class="mi-row"><span>Опыт</span><b>+' + fmtNum(brawlExp(b)) + ' XP</b></div>';
+    rows += '<div class="mi-row"><span>Опыт</span><b>+' + fmtNum(Math.round(brawlExp(b) * carBonus().xpMul)) + ' XP' + (carBonus().xpMul > 1 ? ' (x' + carBonus().xpMul + ' тачка)' : '') + '</b></div>';
     rows += '<div class="mi-row"><span>Множитель уровня</span><b>x' + brawlScale(b).toFixed(2) + '</b></div>';
     if (locked) rows += '<div class="hint" style="margin-top:8px;text-align:center;color:#f59e0b;">Нужен ' + b.minLevel + ' уровень!</div>';
     if (bLeft > 0) rows += '<div class="hint" style="margin-top:8px;text-align:center;color:#f59e0b;">Противник отдыхает. Вернётся через: ' + fmtTime(bLeft / 1000) + '</div>';
@@ -1747,10 +1976,12 @@ function bossSkill() {
 
 function fleeFight() {
     if (!fight) return;
+    const f = fight;
     battleLog.push('[Ты] Смылся из драки.');
     addToChat('[Ты] Смылся из драки.');
     fight = null;
     refresh();
+    showFightResult(false, f, 0);
 }
 
 // ============================ КЛАССЫ / СПОСОБНОСТИ ============================
@@ -1836,19 +2067,57 @@ function classAbility() {
     saveGame();
 }
 
+// ============================ ОКНО РЕЗУЛЬТАТОВ БОЯ ============================
+
+function showFightResult(win, f, bucksWon) {
+    const icon = win ? '🏆' : '💀';
+    const title = win ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ';
+    const titleColor = win ? 'var(--accent-emerald)' : 'var(--btn-danger)';
+    let html = '<div class="mi-ico">' + icon + '</div><h3 style="color:' + titleColor + ';">' + title + '</h3>';
+    
+    if (win) {
+        html += '<div class="mi-row"><span>Противник</span><b>' + f.icon + ' ' + f.name + '</b></div>';
+        html += '<div class="mi-row"><span>Награда</span><b class="gold">' + fmtNum(f.reward) + ' кр.</b></div>';
+        const xpMul = carBonus().xpMul;
+        const xpActual = Math.round(f.exp * xpMul);
+        html += '<div class="mi-row"><span>Опыт</span><b class="purple">+' + fmtNum(xpActual) + ' XP' + (xpMul > 1 ? ' (x' + xpMul + ' тачка)' : '') + '</b></div>';
+        if (f.isBoss && bucksWon > 0) {
+            html += '<div class="mi-row"><span>Баксы (трофей)</span><b class="green">+' + bucksWon + ' $</b></div>';
+            html += '<div class="mi-row"><span>Босс восстановится</span><b class="cd">' + fmtTime(BOSS_COOLDOWN / 1000) + '</b></div>';
+        } else if (!f.isBoss) {
+            html += '<div class="mi-row"><span>Противник восстановится</span><b class="cd">6 часов</b></div>';
+        }
+    } else {
+        html += '<div class="mi-row"><span>Ты очнулся</span><b class="green">на 30% HP</b></div>';
+        html += '<div class="mi-row"><span>Противник восстановится</span><b class="cd">6 часов</b></div>';
+    }
+    
+    html += '<button class="action-btn good" style="margin-top:16px;" onclick="closeFightResultModal()">Закрыть</button>';
+    
+    document.getElementById('fightResultModalBox').innerHTML = html;
+    document.getElementById('fightResultModal').classList.add('show');
+}
+
+function closeFightResultModal() {
+    document.getElementById('fightResultModal').classList.remove('show');
+}
+
 function endFight(win) {
     if (!fight) return;
     const f = fight;
+    let bucksWon = 0;
     fight = null;
     if (win) {
         player.credits += f.reward;
-        player.exp += f.exp;
-        let msg = '[Победа] «' + f.name + '» повержен! +' + fmtNum(f.reward) + ' кр, +' + fmtNum(f.exp) + ' XP.';
+        const xpGain = Math.round(f.exp * carBonus().xpMul);
+        player.exp += xpGain;
+        let msg = '[Победа] «' + f.name + '» повержен! +' + fmtNum(f.reward) + ' кр, +' + fmtNum(xpGain) + ' XP.';
         if (f.isBoss) {
             player.bossUntil = Date.now() + BOSS_COOLDOWN;
             if (Math.random() < 0.35) {
                 const b = 1 + Math.floor(Math.random() * 3);
                 player.bucks += b;
+                bucksWon = b;
                 msg += ' В трофеях: +' + b + ' бакс!';
             }
             msg += ' Боссы уходят в подполье на 10 минут.';
@@ -1865,6 +2134,7 @@ function endFight(win) {
     checkLevelUp();
     refresh();
     saveGame();
+    showFightResult(win, f, bucksWon);
 }
 
 // ============================ ЭКРАН: БОСС ============================
@@ -1905,9 +2175,13 @@ function openBossAbilities() {
     rows += bossAbilRow('🌀', 'Реакция', 'Босс учится уклоняться: его уклонение повышается на 10%. Эффект копится до конца боя.');
     rows += bossAbilRow('🎯', 'Чутьё', 'Босс предвидит твои удары: его шанс крита повышается на 10%. Эффект копится до конца боя.');
     rows += bossAbilRow('🛡️', 'Крепкая шкура', 'Босс напрягается и восстанавливает 3% от своего максимального здоровья.');
-    rows += '<button class="action-btn" style="margin-top:12px;" onclick="closeItemModal()">Закрыть</button>';
-    document.getElementById('itemModalBox').innerHTML = rows;
-    document.getElementById('itemModal').classList.add('show');
+    rows += '<button class="action-btn good" style="margin-top:12px;" onclick="closeBossAbil()">Закрыть</button>';
+    document.getElementById('bossAbilBox').innerHTML = rows;
+    document.getElementById('bossAbilModal').classList.add('show');
+}
+
+function closeBossAbil() {
+    document.getElementById('bossAbilModal').classList.remove('show');
 }
 
 function openBossModal(id) {
@@ -1963,10 +2237,11 @@ function doJob(id) {
         setBlockMsg('work', '❌ Заказ обернулся западней: урон -' + d + ' HP, без оплаты.', 'error');
     } else {
         const pay = Math.round(job.pay[0] + Math.random() * (job.pay[1] - job.pay[0]));
+        const xpGain = Math.round(job.exp * carBonus().xpMul);
         player.credits += pay;
-        player.exp += job.exp;
-        addToChat('[Работа] ' + job.name + ': +' + fmtNum(pay) + ' кр, +' + fmtNum(job.exp) + ' XP.');
-        setBlockMsg('work', '✅ ' + job.name + ': +' + fmtNum(pay) + ' кр, +' + fmtNum(job.exp) + ' XP.', 'success');
+        player.exp += xpGain;
+        addToChat('[Работа] ' + job.name + ': +' + fmtNum(pay) + ' кр, +' + fmtNum(xpGain) + ' XP.');
+        setBlockMsg('work', '✅ ' + job.name + ': +' + fmtNum(pay) + ' кр, +' + fmtNum(xpGain) + ' XP.', 'success');
     }
     checkLevelUp();
     refresh();
@@ -2091,36 +2366,326 @@ function buyCrew(id) {
     saveGame();
 }
 
+// ============================ ЭКРАН: ПРОФЕССИИ ============================
+
+function renderProf() {
+    const body = document.getElementById('profBody');
+    const p = player.prof && player.prof.id ? PROFESSIONS.find(x => x.id === player.prof.id) : null;
+    let html = '<div class="panel"><h3>💼 Профессии</h3>' +
+        '<div class="hint">Одна профессия на всю игру. Каждая добывает свой ресурс, а <b class="purple">готовые изделия собираются из ресурсов всех трёх профессий</b>: портной шьёт бронекостюмы, кузнец куёт клинки, техник собирает кибер-модули. Сырьё передаётся между мастерами через обмен — так профессии зависят друг от друга.</div>' +
+        '<div class="hint" style="margin-top:6px;font-size:13px;">Пассивный доход профессии: <b class="green">' + profIncomeTxt() + '</b></div>' +
+        '<div id="bm-prof"></div></div>';
+    if (!p) {
+        html += PROFESSIONS.map(pr =>
+            '<div class="panel"><h3>' + pr.icon + ' ' + pr.name + '</h3>' +
+            '<div class="hint">' + pr.desc + '<br>Добывает: <b class="green">' + profResLabel(pr) + '</b> (от 1 до 10 шт/сутки, растёт с уровнем)<br>Изготавливает: <b class="purple">' + CRAFTING.filter(c => c.prof === pr.id).map(c => c.icon + ' ' + c.name).join(', ') + '</b></div>' +
+            '<button class="action-btn good" style="margin-top:8px;" onclick="openProfModal()">Выбрать профессию</button>' +
+            '</div>'
+        ).join('');
+    } else {
+        const lvl = player.prof.lvl || 0;
+        const maxed = lvl >= p.max;
+        const cost = maxed ? 0 : profCost(p);
+        const own = p.res[0];
+        const ownInfo = resInfo(own);
+        const have = Math.floor(player.resources[own]);
+        html += '<div class="panel"><h3>' + p.icon + ' ' + p.name + '</h3>' +
+            '<div class="hint">' + p.desc + '</div>' +
+            '<div class="fight-item" style="margin-top:6px;"><div><strong>Уровень ' + lvl + '/' + p.max + '</strong><br><span class="hint">Доход: ' + profIncomeTxt() + '</span></div>' +
+            (maxed ? '<span class="green" style="font-size:11px;">МАКС</span>' : '<button class="fight-start" onclick="upgradeProf()"' + (player.bucks < cost ? ' disabled' : '') + '>Улучшить — ' + fmtNum(cost) + ' $</button>') +
+            '</div></div>';
+
+        html += '<div class="panel"><h3>🏭 Добыча сырья</h3>' +
+            '<div class="hint">Твой ресурс: <b class="green">' + ownInfo.icon + ' ' + ownInfo.name + ' — на складе: ' + fmtNum(have) + '</b>. Кнопка «Добыть» даёт 1 шт, доступна раз в 6 часов.</div>' +
+            '<button class="action-btn good" style="margin-top:8px;" onclick="gatherRes()"' + (player.gatherCd > Date.now() ? ' disabled' : '') + '>' + (player.gatherCd > Date.now() ? '⏳ Добыча через: ' + fmtTime((player.gatherCd - Date.now()) / 1000) : '⛏️ Добыть ' + ownInfo.icon + ' (+1, раз в 6 часов)') + '</button>' +
+            '</div>';
+
+        html += '<div class="panel"><h3>🔁 Обмен с мастерами</h3>' +
+            '<div class="hint">Передавай ресурсы мастерам других профессий (бартер 3:1), продавай или покупай сырьё. Так каждая профессия снабжает остальные.</div>' +
+            RESOURCES.map(r => {
+                const amt = Math.floor(player.resources[r.id]);
+                const pr = RES_PRICES[r.id];
+                const isOwn = r.id === own;
+                const barterBtn = isOwn
+                    ? ''
+                    : '<button class="fight-start" onclick="barterRes(\'' + r.id + '\')"' + (have < 3 ? ' disabled' : '') + '>3 ' + ownInfo.icon + ' → 1 ' + r.icon + '</button>';
+                return '<div class="fight-item" style="align-items:flex-start;"><div><strong>' + r.icon + ' ' + r.name + '</strong> <span class="hint">на складе: ' + fmtNum(amt) + '</span><br><span class="hint">' + (isOwn ? 'твой ресурс' : 'от ' + profOfRes(r.id)) + '</span></div>' +
+                    '<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;">' +
+                    barterBtn +
+                    '<button class="fight-start" onclick="sellRes(\'' + r.id + '\')"' + (amt < 1 ? ' disabled' : '') + '>Продать (' + fmtNum(pr.sell) + ' кр.)</button>' +
+                    '<button class="fight-start" style="background:var(--accent-purple);color:#fff;" onclick="buyRes(\'' + r.id + '\')"' + (player.bucks < pr.buy ? ' disabled' : '') + '>Купить (' + fmtNum(pr.buy) + ' $)</button>' +
+                    '</div></div>';
+            }).join('') +
+            '</div>';
+
+        html += '<div class="panel"><h3>⚒️ Производство</h3>' +
+            '<div class="hint">Собери ресурсы всех трёх профессий и изготовь готовое изделие. Более высокие версии требуют предыдущую (улучшение/модификация) и уровень профессии.</div>' +
+            CRAFTING.filter(c => c.prof === p.id).map(c => {
+                const itm = findItem(c.item);
+                const resTxt = Object.keys(c.res).map(k => c.res[k] + ' ' + resInfo(k).icon).join(' + ');
+                let ok = true;
+                let dis = '';
+                if (lvl < c.needLvl) { ok = false; dis = ' нужен ур. ' + c.needLvl; }
+                else if (player.energy < c.energy) { ok = false; dis = ' нужно ' + c.energy + ' эн.'; }
+                for (const k in c.res) if (Math.floor(player.resources[k]) < c.res[k]) { ok = false; dis = ' не хватает сырья'; }
+                if (c.need && !hasInvItem(c.need)) { ok = false; dis = ' нужна предыдущая версия'; }
+                const stats = itemStatsHtml(itm);
+                return '<div class="fight-item" style="align-items:flex-start;"><div style="flex:1;"><span class="fi-ico">' + c.icon + '</span> <strong>' + craftNameHtml(c.name, c.tier) + '</strong> <span class="hint">(Ур ' + c.tier + ')</span>' +
+                    '<div class="inv-stats">' + stats + '</div>' +
+                    '<span class="hint">Требуется: ' + resTxt + ' • ' + c.energy + ' эн. • ур. ' + c.needLvl + (c.need ? ' • + ' + findItem(c.need).name : '') + '</span></div>' +
+                    '<button class="fight-start" onclick="craftItem(\'' + c.id + '\')"' + (ok ? '' : ' disabled title="' + dis + '"') + '>Изготовить</button></div>';
+            }).join('') +
+            '</div>';
+
+        html += '<div class="panel"><h3>🔄 Смена профессии</h3>' +
+            '<div class="hint">Сменить профессию можно в любой момент за <b class="gold">500 $</b>. Уровень новой профессии начнётся с нуля.</div>' +
+            '<button class="action-btn" style="margin-top:8px;" onclick="openProfModal()"' + (player.bucks < 500 ? ' disabled' : '') + '>Сменить профессию — 500 $</button>' +
+            '</div>';
+    }
+    body.innerHTML = html;
+}
+
+function openProfModal() {
+    const isFirst = !player.prof || !player.prof.id;
+    document.getElementById('confirmModalBox').innerHTML =
+        '<div class="mi-ico">💼</div>' +
+        '<h3>' + (isFirst ? 'Выбор профессии' : 'Смена профессии') + '</h3>' +
+        '<div class="hint" style="text-align:center;margin:8px 0;">' +
+            (isFirst ? 'Выбери одну профессию — она твоя на всю игру. Смена позже будет стоить 500 $.' : 'Смена профессии стоит <b class="gold">500 $</b>. Уровень новой профессии начнётся с нуля.') +
+        '</div>' +
+        PROFESSIONS.map(pr =>
+            '<div class="fight-item" style="text-align:left;"><div><span class="fi-ico">' + pr.icon + '</span> <strong>' + pr.name + '</strong><br><span class="hint">' + pr.desc + ' Доход: ' + profResLabel(pr) + ' — от 1 до 10 шт/сутки.</span></div>' +
+            '<button class="fight-start" onclick="chooseProf(\'' + pr.id + '\')">' + (isFirst ? 'Выбрать' : 'Выбрать за 500 $') + '</button></div>'
+        ).join('') +
+        '<button class="action-btn" style="margin-top:8px;" onclick="closeConfirmModal()">Отмена</button>';
+    document.getElementById('confirmModal').classList.add('show');
+}
+
+function chooseProf(id) {
+    const pr = PROFESSIONS.find(x => x.id === id);
+    if (!pr) return;
+    const isFirst = !player.prof || !player.prof.id;
+    if (!isFirst) {
+        if (player.prof.id === id) { closeConfirmModal(); addToChat('[Профессии] Эта профессия уже выбрана.'); setBlockMsg('prof', 'ℹ️ Эта профессия уже выбрана.', 'info'); refresh(); return; }
+        if (player.bucks < 500) { closeConfirmModal(); addToChat('[Ошибка] Нужно 500 баксов для смены.'); setBlockMsg('prof', '⛔ Нужно 500 баксов для смены.', 'error'); refresh(); return; }
+        player.bucks -= 500;
+    }
+    player.prof = {id: id, lvl: 0};
+    closeConfirmModal();
+    addToChat('[Профессии] Выбрана профессия: ' + pr.icon + ' ' + pr.name + '.');
+    setBlockMsg('prof', '✅ Выбрана профессия: ' + pr.icon + ' ' + pr.name + '.', 'success');
+    refresh();
+    saveGame();
+}
+
+function upgradeProf() {
+    const p = PROFESSIONS.find(x => x.id === (player.prof && player.prof.id));
+    if (!p) return;
+    const lvl = player.prof.lvl || 0;
+    if (lvl >= p.max) { addToChat('[Профессии] «' + p.name + '» уже максимального уровня.'); setBlockMsg('prof', 'ℹ️ «' + p.name + '» уже максимального уровня.', 'info'); return; }
+    const cost = profCost(p);
+    if (player.bucks < cost) { addToChat('[Ошибка] Нужно ' + cost + ' баксов.'); setBlockMsg('prof', '⛔ Нужно ' + cost + ' баксов.', 'error'); return; }
+    player.bucks -= cost;
+    player.prof.lvl++;
+    addToChat('[Профессии] «' + p.name + '» улучшен до ' + player.prof.lvl + ' уровня. Доход: ' + profIncomeTxt() + '.');
+    setBlockMsg('prof', '✅ «' + p.name + '» улучшен до ' + player.prof.lvl + ' уровня: ' + profIncomeTxt() + '.', 'success');
+    refresh();
+    saveGame();
+}
+
+function ownRes() {
+    const p = PROFESSIONS.find(x => x.id === (player.prof && player.prof.id));
+    return p ? p.res[0] : null;
+}
+
+function profOfRes(resId) {
+    const p = PROFESSIONS.find(x => x.res.includes(resId));
+    return p ? p.name : 'мастер';
+}
+
+function hasInvItem(id) {
+    return player.inventory.some(i => i.id === id);
+}
+
+function craftNameHtml(name, tier) {
+    const colors = {1: '#94a3b8', 2: '#3b82f6', 3: '#facc15'};
+    const words = ['низший', 'обычный', 'высший'];
+    const w = words[tier - 1];
+    if (w && name.indexOf(' ' + w) > -1) {
+        const base = name.slice(0, name.indexOf(' ' + w));
+        return base + '<span style="color:' + colors[tier] + ';"> ' + w + '</span>';
+    }
+    return name;
+}
+
+function gatherRes() {
+    const p = PROFESSIONS.find(x => x.id === (player.prof && player.prof.id));
+    if (!p) { addToChat('[Ошибка] Сначала выбери профессию.'); setBlockMsg('prof', '⛔ Сначала выбери профессию.', 'error'); return; }
+    if (player.gatherCd > Date.now()) {
+        const left = Math.ceil((player.gatherCd - Date.now()) / 1000);
+        addToChat('[Профессия] Добыча ещё недоступна: ' + fmtTime(left) + '.');
+        setBlockMsg('prof', '⏳ Добыча ещё недоступна: ' + fmtTime(left) + '.', 'info');
+        return;
+    }
+    player.resources[p.res[0]] += 1;
+    player.gatherCd = Date.now() + 6 * 3600 * 1000;
+    addToChat('[Профессия] Добыто: ' + resInfo(p.res[0]).icon + ' ' + resInfo(p.res[0]).name + ' +1. Следующая добыча через 6 часов.');
+    setBlockMsg('prof', '✅ Добыто: ' + resInfo(p.res[0]).icon + ' ' + resInfo(p.res[0]).name + ' +1. Следующая добыча через 6 часов.', 'success');
+    refresh();
+    saveGame();
+}
+
+function sellRes(id) {
+    const p = RES_PRICES[id];
+    if (!p) return;
+    const amt = Math.floor(player.resources[id]);
+    if (amt < 1) { addToChat('[Ошибка] Нет ' + resInfo(id).name + ' на складе.'); setBlockMsg('prof', '⛔ Нет ' + resInfo(id).name + ' на складе.', 'error'); return; }
+    player.resources[id] -= 1;
+    player.credits += p.sell;
+    addToChat('[Профессия] Продано мастеру: ' + resInfo(id).icon + ' ' + resInfo(id).name + ' за ' + fmtNum(p.sell) + ' кр.');
+    setBlockMsg('prof', '✅ Продано мастеру: ' + resInfo(id).icon + ' ' + resInfo(id).name + ' → ' + fmtNum(p.sell) + ' кр.', 'success');
+    refresh();
+    saveGame();
+}
+
+function buyRes(id) {
+    const p = RES_PRICES[id];
+    if (!p) return;
+    if (player.bucks < p.buy) { addToChat('[Ошибка] Не хватает баксов (' + fmtNum(p.buy) + ' $).'); setBlockMsg('prof', '⛔ Не хватает баксов (' + fmtNum(p.buy) + ' $).', 'error'); return; }
+    player.bucks -= p.buy;
+    player.resources[id] += 1;
+    addToChat('[Профессия] Куплено у мастера: ' + resInfo(id).icon + ' ' + resInfo(id).name + ' за ' + fmtNum(p.buy) + ' $.');
+    setBlockMsg('prof', '✅ Куплено у мастера: ' + resInfo(id).icon + ' ' + resInfo(id).name + ' → склад.', 'success');
+    refresh();
+    saveGame();
+}
+
+function barterRes(toId) {
+    const own = ownRes();
+    if (!own) { addToChat('[Ошибка] Сначала выбери профессию.'); setBlockMsg('prof', '⛔ Сначала выбери профессию.', 'error'); return; }
+    const toInfo = resInfo(toId);
+    if (!toInfo || toId === own) return;
+    const ownInfo = resInfo(own);
+    if (Math.floor(player.resources[own]) < 3) { addToChat('[Ошибка] Нужно 3 единицы ' + ownInfo.name + '.'); setBlockMsg('prof', '⛔ Нужно 3 единицы ' + ownInfo.name + '.', 'error'); return; }
+    player.resources[own] -= 3;
+    player.resources[toId] += 1;
+    addToChat('[Профессия] Передано мастеру «' + profOfRes(toId) + '»: 3 ' + ownInfo.name + ' → 1 ' + toInfo.name + '.');
+    setBlockMsg('prof', '✅ Передано мастеру «' + profOfRes(toId) + '»: 3 ' + ownInfo.icon + ' → 1 ' + toInfo.icon + '.', 'success');
+    refresh();
+    saveGame();
+}
+
+function craftItem(cid) {
+    const r = CRAFTING.find(x => x.id === cid);
+    if (!r) return;
+    if (!player.prof || player.prof.id !== r.prof) { addToChat('[Ошибка] Этот чертёж — для другой профессии.'); setBlockMsg('prof', '⛔ Этот чертёж — для другой профессии.', 'error'); return; }
+    const lvl = player.prof.lvl || 0;
+    if (lvl < r.needLvl) { addToChat('[Ошибка] Нужен уровень профессии ' + r.needLvl + '.'); setBlockMsg('prof', '⛔ Нужен уровень профессии ' + r.needLvl + '.', 'error'); return; }
+    if (player.energy < r.energy) { addToChat('[Ошибка] Нужно ' + r.energy + ' энергии.'); setBlockMsg('prof', '⛔ Нужно ' + r.energy + ' энергии.', 'error'); return; }
+    for (const k in r.res) {
+        if (Math.floor(player.resources[k]) < r.res[k]) {
+            const ri = resInfo(k);
+            addToChat('[Ошибка] Нужно ' + r.res[k] + ' ' + ri.name + '.'); setBlockMsg('prof', '⛔ Нужно ' + r.res[k] + ' ' + ri.icon + ' ' + ri.name + '.', 'error'); return;
+        }
+    }
+    if (r.need && !hasInvItem(r.need)) { addToChat('[Ошибка] Нужна предыдущая версия изделия.'); setBlockMsg('prof', '⛔ Нужна предыдущая версия изделия в сумке.', 'error'); return; }
+    for (const k in r.res) player.resources[k] -= r.res[k];
+    if (r.need) removeInv(r.need, 1);
+    player.energy -= r.energy;
+    const itm = findItem(r.item);
+    addInv(r.item, 1);
+    addToChat('[Профессия] Изготовлено: ' + itm.icon + ' ' + itm.name + '! Собрано из ресурсов трёх профессий.');
+    setBlockMsg('prof', '✅ Изготовлено: ' + itm.icon + ' ' + itm.name + ' — готовое изделие в сумке.', 'success');
+    refresh();
+    saveGame();
+}
+
 // ============================ ЭКРАН: ГАРАЖ ============================
 
 function renderGarage() {
     const body = document.getElementById('garageBody');
-    const cb = carBonus();
-    body.innerHTML = CARS.map(c => {
-        const owned = player.ownedCars.includes(c.id);
-        const active = cb.id === c.id;
+    const rc = player.rentedCar || {id:null, until:0};
+    const active = rc.id && rc.until > Date.now();
+    let html = '';
+    if (active) {
+        const ac = CARS.find(x => x.id === rc.id);
+        const left = Math.max(0, (rc.until - Date.now()) / 1000);
+        html += '<div class="panel"><h3>' + (ac ? ac.icon : '🚗') + ' Активная аренда: ' + (ac ? ac.name : '?') + '</h3>' +
+            '<div class="hint">Осталось: ' + fmtTime(left) + '</div>' +
+            '<button class="action-btn" onclick="openCarModal()">📋 Подробные характеристики</button>' +
+            '<button class="action-btn danger" onclick="cancelRental()">❌ Снять машину</button>' +
+            '</div>';
+    }
+    html += CARS.map(c => {
+        const isRented = active && rc.id === c.id;
+        const left = isRented ? Math.max(0, (rc.until - Date.now()) / 1000) : 0;
         let desc = '+' + fmtNum(c.energyMax) + ' энергия';
-        if (c.dmg) desc += ' • +' + fmtNum(c.dmg) + ' урон';
-        if (c.crit) desc += ' • +' + c.crit + '% крит';
-        if (c.regen) desc += ' • быстрый реген';
-        return '<div class="fight-item"><div><span class="fi-ico">' + c.icon + '</span> <strong>' + c.name + '</strong>' + (active ? ' <span class="green">АКТИВНА</span>' : '') + '<br><span class="hint">' + desc + '</span></div>' +
-            (owned ? '<span class="green" style="font-size:11px;">В гараже</span>' : '<button class="fight-start" onclick="buyCar(\'' + c.id + '\')"' + (player.credits < c.price ? ' disabled' : '') + '>Купить (' + fmtNum(c.price) + ' кр.)</button>') +
+        desc += ' • +' + fmtNum(c.dmg) + ' урон';
+        desc += ' • +' + fmtNum(c.armor) + ' броня';
+        if (c.dodge) desc += ' • +' + c.dodge + '% уклонение';
+        desc += ' • +' + c.crit + '% крит';
+        desc += ' • +' + fmtNum(c.hpBonus) + ' ХП';
+        desc += ' • реген x' + c.regen;
+        desc += ' • опыт x' + c.xpMul;
+        return '<div class="fight-item"><div><span class="fi-ico">' + c.icon + '</span> <strong>' + c.name + '</strong>' +
+            (isRented ? ' <span class="green">АРЕНДОВАНА (' + fmtTime(left) + ')</span>' : '') +
+            '<br><span class="hint">' + desc + '</span></div>' +
+            (isRented ? '<span class="green" style="font-size:11px;">Активна</span>' :
+            '<button class="fight-start" onclick="rentCar(\'' + c.id + '\')"' + (player.bucks < c.rentBucks ? ' disabled' : '') + '>Аренда (' + c.rentBucks + '$/сут)</button>') +
         '</div>';
-    }).join('') +
-    '<div id="bm-garage"></div>';
+    }).join('');
+    html += '<div class="hint" style="margin-top:8px;">Аренда оплачивается в баках за сутки. Машина даёт бонусы к статам, регенерации и x2 (и выше) к опыту от заданий.</div>';
+    html += '<div id="bm-garage"></div>';
+    body.innerHTML = html;
 }
 
-function buyCar(id) {
+function rentCar(id) {
     const c = CARS.find(x => x.id === id);
     if (!c) return;
-    if (player.ownedCars.includes(id)) { addToChat('[Ошибка] Уже в гараже.'); setBlockMsg('garage', 'ℹ️ Уже в гараже.', 'info'); return; }
-    if (player.credits < c.price) { addToChat('[Ошибка] Не хватает кредитов.'); setBlockMsg('garage', '⛔ Не хватает кредитов.', 'error'); return; }
-    player.credits -= c.price;
-    player.ownedCars.push(id);
-    addToChat('[Гараж] Куплена тачка: ' + c.name + '. Бонусы активны!');
-    setBlockMsg('garage', '✅ Куплена тачка: ' + c.name + '. Бонусы активны!', 'success');
+    const rc = player.rentedCar || {id:null, until:0};
+    if (rc.id && rc.until > Date.now()) { addToChat('[Ошибка] Уже арендована другая машина.'); setBlockMsg('garage', '⛔ Сначала сними текущую.', 'error'); return; }
+    if (player.bucks < c.rentBucks) { addToChat('[Ошибка] Не хватает баксов.'); setBlockMsg('garage', '⛔ Не хватает баксов.', 'error'); return; }
+    player.bucks -= c.rentBucks;
+    player.rentedCar = {id: c.id, until: Date.now() + 86400000};
+    addToChat('[Гараж] Арендована: ' + c.icon + ' ' + c.name + ' на 24 часа. Бонусы активны!');
+    setBlockMsg('garage', '✅ Арендована: ' + c.icon + ' ' + c.name + ' на сутки!', 'success');
     refresh();
     saveGame();
+}
+
+function cancelRental() {
+    const rc = player.rentedCar || {id:null, until:0};
+    if (!rc.id) return;
+    const c = CARS.find(x => x.id === rc.id);
+    player.rentedCar = {id:null, until:0};
+    addToChat('[Гараж] Аренда ' + (c ? c.icon + ' ' + c.name : '') + ' прекращена. Бонусы сняты.');
+    setBlockMsg('garage', '❌ Аренда прекращена. Бонусы сняты.', 'error');
+    refresh();
+    saveGame();
+}
+
+function openCarModal() {
+    const rc = player.rentedCar || {id:null, until:0};
+    if (!rc.id || rc.until <= Date.now()) { addToChat('[Ошибка] Нет арендованной машины.'); return; }
+    const c = CARS.find(x => x.id === rc.id);
+    if (!c) return;
+    const left = Math.max(0, (rc.until - Date.now()) / 1000);
+    const box = document.getElementById('itemModalBox');
+    box.innerHTML =
+        '<div style="text-align:center;font-size:48px;margin-bottom:8px;">' + c.icon + '</div>' +
+        '<h3>' + c.name + '</h3>' +
+        '<div style="text-align:center;margin:6px 0;"><span class="green">АРЕНДОВАНА</span> — осталось ' + fmtTime(left) + '</div>' +
+        '<div class="mi-row"><span>Энергия</span><b class="green">+' + fmtNum(c.energyMax) + '</b></div>' +
+        '<div class="mi-row"><span>Урон</span><b class="green">+' + fmtNum(c.dmg) + '</b></div>' +
+        '<div class="mi-row"><span>Броня</span><b class="green">+' + fmtNum(c.armor) + '</b></div>' +
+        '<div class="mi-row"><span>Уклонение</span><b class="green">+' + c.dodge + '%</b></div>' +
+        '<div class="mi-row"><span>Крит</span><b class="green">+' + c.crit + '%</b></div>' +
+        '<div class="mi-row"><span>Здоровье</span><b class="green">+' + fmtNum(c.hpBonus) + ' HP</b></div>' +
+        '<div class="mi-row"><span>Регенерация</span><b class="green">x' + c.regen + '</b></div>' +
+        '<div class="mi-row"><span>Множитель опыта</span><b class="purple">x' + c.xpMul + '</b></div>' +
+        '<div class="mi-row"><span>Стоимость</span><b class="gold">' + c.rentBucks + '$ / сутки</b></div>' +
+        '<button class="action-btn" style="margin-top:10px;" onclick="closeItemModal()">Закрыть</button>';
+    document.getElementById('itemModal').classList.add('show');
 }
 
 // ============================ ЭКРАН: КАЗИНО ============================
@@ -2241,7 +2806,7 @@ function renderShop() {
     const cats = [['weapon','🔫 Оружие'],['armor','🧥 Броня'],['accessory','💎 Аксессуары'],['consumable','🧪 Расходники'],['booster','💥 Бустеры'],['tattoo','💉 Тату-салон'],['hair','💈 Парикмахерская']];
     let html = '<div class="tabs">' + cats.map(c => '<button class="tab' + (shopCat === c[0] ? ' active' : '') + '" onclick="setShopCat(\'' + c[0] + '\')">' + c[1] + '</button>').join('') + '<button class="tab" onclick="openScreen(\'garage\')">🚗 Гараж</button></div>';
     if (shopCat === 'booster') {
-        html += '<div class="hint" style="margin-bottom:8px;">Временные бонусы покупаются сразу за кредиты и действуют 60 секунд.</div>' +
+        html += '<div class="hint" style="margin-bottom:8px;">Временные бонусы покупаются сразу за кредиты и действуют 180 секунд.</div>' +
             BOOSTERS.map(b => {
                 const disabled = player.credits < b.price;
                 return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + b.icon + '</span><div><strong>' + b.name + '</strong><br><small>' + b.desc + '</small></div></div>' +
@@ -2249,13 +2814,12 @@ function renderShop() {
             }).join('');
     } else if (shopCat === 'tattoo' || shopCat === 'hair') {
         const list = shopCat === 'tattoo' ? TATTOOS : HAIRSTYLES;
-        html += '<div class="hint" style="margin-bottom:8px;">Каждая татуировка/прическа даёт +5% к одной характеристике на выбор. Выбери характеристику перед покупкой.</div>' +
+        html += '<div class="hint" style="margin-bottom:8px;">Каждая татуировка/прическа даёт +5% к своей характеристике. Цена — 1000 кредитов за каждую.</div>' +
             list.map(c => {
+                const st = AP_STATS.find(s => s.key === c.stat) || AP_STATS[0];
                 const owned = player.cosmetics.includes(c.id);
-                const opts = AP_STATS.map(s => '<option value="' + s.key + '">' + s.icon + ' ' + s.name + '</option>').join('');
-                return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + c.icon + '</span><div><strong>' + c.name + '</strong><br><small>Бонус: +5% к выбранной характеристике</small></div></div>' +
-                    '<div style="display:flex;gap:6px;"><select class="sel" id="' + shopCat + 'Sel_' + c.id + '" style="flex:1;margin:0;">' + opts + '</select>' +
-                    '<button class="si-buy" style="width:auto;padding:8px 12px;" onclick="buyCosmetic(\'' + shopCat + '\',\'' + c.id + '\')"' + (owned ? ' disabled title="Уже есть"' : '') + '>' + (owned ? 'Есть' : 'Купить за ' + fmtNum(c.price) + ' кредитов') + '</button></div></div>';
+                return '<div class="shop-item"><div class="si-top"><span class="si-ico">' + c.icon + '</span><div><strong>' + c.name + '</strong><br><small>Бонус: +5% к ' + st.icon + ' ' + st.name + '</small></div></div>' +
+                    '<button class="si-buy" onclick="buyCosmetic(\'' + shopCat + '\',\'' + c.id + '\')"' + (owned ? ' disabled title="Уже есть"' : '') + '>' + (owned ? 'Есть' : 'Купить за ' + fmtNum(c.price) + ' кредитов') + '</button></div>';
             }).join('');
     } else {
         const slotList = shopCat === 'armor' ? ['torso', 'head', 'legs', 'feet'] : shopCat === 'accessory' ? ['head', 'neck'] : [];
@@ -2265,7 +2829,7 @@ function renderShop() {
                 slotList.map(s => '<button class="tab' + (shopSlot === s ? ' active' : '') + '" onclick="setShopSlot(\'' + s + '\')">' + slotName(s) + '</button>').join('') +
             '</div>';
         }
-        let items = ITEMS[shopCat];
+        let items = (ITEMS[shopCat] || []).filter(itm => !itm.craftOnly);
         if (shopSlot) items = items.filter(itm => itm.slot === shopSlot);
         html += items.map(itm => {
             const owned = itm.slot && (player.inventory.some(i => i.id === itm.id) || player.equipped[itm.slot] === itm.id);
@@ -2318,7 +2882,7 @@ function buyBooster(id) {
         addToChat('[Бустер] ' + b.name + ': энергия +' + b.amt + '.');
         setBlockMsg('shop', '✅ ' + b.name + ': энергия +' + b.amt + '.', 'success');
     } else {
-        player.buffs[b.key] = {amt: b.amt, until: Date.now() + b.dur * 1000};
+        player.buffs[b.key] = {amt: Math.round(b.amt), until: Date.now() + b.dur * 1000};
         addToChat('[Бустер] ' + b.name + ' активен на ' + b.dur + ' сек: ' + b.desc + '.');
         setBlockMsg('shop', '✅ ' + b.name + ' активен на ' + b.dur + ' сек: ' + b.desc + '.', 'success');
     }
@@ -2332,21 +2896,23 @@ function buyCosmetic(cat, id) {
     if (!itm) return;
     if (player.cosmetics.includes(id)) { addToChat('[Ошибка] Уже куплено.'); setBlockMsg('shop', '⛔ Уже куплено.', 'error'); return; }
     if (player.credits < itm.price) { addToChat('[Ошибка] Не хватает кредитов.'); setBlockMsg('shop', '⛔ Не хватает кредитов.', 'error'); return; }
-    const sel = document.getElementById(cat + 'Sel_' + id);
-    const stat = (sel && sel.value && AP_STATS.find(s => s.key === sel.value)) ? sel.value : 'dmg';
+    const st = AP_STATS.find(s => s.key === itm.stat);
+    const statLabel = st ? st.icon + ' ' + st.name : statName(itm.stat);
     player.credits -= itm.price;
     player.cosmetics.push(id);
-    player.apStats[stat] = (player.apStats[stat] || 0) + 5;
     const catName = cat === 'tattoo' ? 'Тату-салон' : 'Парикмахерская';
-    addToChat('[' + catName + '] ' + itm.icon + ' ' + itm.name + ': ' + statName(stat) + ' +5%.');
-    setBlockMsg('shop', '✅ ' + itm.icon + ' ' + itm.name + ': ' + statName(stat) + ' +5%.', 'success');
+    addToChat('[' + catName + '] ' + itm.icon + ' ' + itm.name + ': ' + statLabel + ' +' + itm.pct + '%.');
+    setBlockMsg('shop', '✅ ' + itm.icon + ' ' + itm.name + ': ' + statLabel + ' +' + itm.pct + '%.', 'success');
     refresh();
     saveGame();
 }
 
 // ============================ ЭКРАН: СУМКА ============================
 
-function sellPrice(itm) { return Math.floor(itm.price * 0.3); }
+function sellPrice(itm) {
+    let mult = 1;
+    return Math.floor(itm.price * 0.3 * mult);
+}
 
 function renderInventory() {
     const body = document.getElementById('inventoryBody');
@@ -2378,9 +2944,9 @@ function useItem(id) {
     if (!itm) return;
     if (itm.heal) player.hp = Math.min(maxHp(), player.hp + itm.heal);
     if (itm.energy) player.energy = Math.min(maxEnergy(), player.energy + itm.energy);
-    if (itm.buff === 'dmg') player.buffs.dmg = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
-    if (itm.buff === 'crit') player.buffs.crit = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
-    if (itm.buff === 'dodge') player.buffs.dodge = {amt: itm.buffAmt, until: Date.now() + itm.buffDur * 1000};
+    if (itm.buff === 'dmg') player.buffs.dmg = {amt: Math.round(itm.buffAmt), until: Date.now() + itm.buffDur * 1000};
+    if (itm.buff === 'crit') player.buffs.crit = {amt: Math.round(itm.buffAmt), until: Date.now() + itm.buffDur * 1000};
+    if (itm.buff === 'dodge') player.buffs.dodge = {amt: Math.round(itm.buffAmt), until: Date.now() + itm.buffDur * 1000};
     removeInv(id, 1);
     addToChat('[Сумка] Использовано: ' + itm.icon + ' ' + itm.name + '.');
     setBlockMsg('inv', '✅ Использовано: ' + itm.icon + ' ' + itm.name + '.', 'success');
@@ -2450,9 +3016,11 @@ function renderHelp() {
         '👑 Босс — боссы открываются с уровнем, общий кулдаун 10 минут, дропают баксы.<br>' +
         '⭐ Очки действия — каждое даёт +1% к характеристике. За каждый уровень +1 очко действия.<br>' +
         '🏢 Бизнес — работники приносят доход даже в оффлайне.<br>' +
+        '💼 Профессии — одна профессия на всю игру (Портной, Кузнец, Техник), прокачивается за баксы и добывает свой ресурс: Портной — ткань, Кузнец — металл, Техник — электронику (от 1 до 10 шт/сутки). Сырьё передаётся мастерам других профессий (обмен 3:1, продажа, покупка), а из ресурсов всех трёх профессий собираются кибер-модули. Низший уровень даёт +5% к статам, обычный +15%, высший +30%. Смена профессии — 500 $.<br>' +
         '🏦 Банк — вклады с процентами.<br>' +
         '💥 Бустеры — временные бонусы за кредиты.<br>' +
-        '💉 Тату-салон и 💈 парикмахерская — в магазине: каждая татуировка/прическа даёт +5% к характеристике на выбор.<br>' +
+        '🚗 Гараж — аренда элитных тачек за баксы (5–80$/сут). Каждая даёт бонусы к урону, броне, ХП, уклонению, криту, регенерации энергии и множитель к опыту (x1.5–x3.0). Аренда посуточная, по истечении бонусы снимаются.<br>' +
+        '💉 Тату-салон и 💈 парикмахерская — в магазине: каждая татуировка/прическа даёт +5% к своей характеристике, цена 10 000 кредитов.<br>' +
         '🎁 Бонус дня — ежедневная награда по дням недели (Пн–Вс), прогресс сбрасывается в понедельник.<br>' +
         '🔍 Масштаб страницы — кнопки +/- справа сверху.<br>' +
         '💾 Прогресс сохраняется автоматически.</div></div>';
@@ -2579,6 +3147,7 @@ function adminResetTimers() {
     player.classShield = {amt:0, until:0};
     player.classRogue = {dodge:0, crit:0, until:0};
     player.classChangeUntil = 0;
+    player.gatherCd = 0;
     addToChat('[Админ] Все тайминги сброшены: боссы, разборки, связи и смена класса доступны.');
     setBlockMsg('admin', '✅ Все тайминги сброшены: боссы, разборки и связи доступны.', 'success');
     refresh();
@@ -2587,13 +3156,34 @@ function adminResetTimers() {
 
 // ============================ ЦИКЛ ============================
 
+let hpRegenTimer = 0;
+
 function tick() {
     player.energy = Math.min(maxEnergy(), player.energy + regenPerSec());
     if (!fight) player.hp = Math.min(maxHp(), player.hp * (1 + 0.01 / 60));
+    // Регенерация HP: 10% от максимального каждые 30 секунд
+    if (!fight) {
+        hpRegenTimer++;
+        if (hpRegenTimer >= 30) {
+            hpRegenTimer = 0;
+            const healAmt = Math.round(maxHp() * 0.1);
+            if (player.hp < maxHp()) {
+                player.hp = Math.min(maxHp(), player.hp + healAmt);
+            }
+        }
+    } else {
+        hpRegenTimer = 0;
+    }
     if (crewPerMin() > 0) player.credits += crewPerMin() / 60;
+    profResourcesPerDay().forEach(r => { player.resources[r.res] += r.amt / 86400; });
     if (player.bank.amount > 0) {
         if (player.bank.until <= Date.now()) claimBank(true);
         else if (currentScreen === 'bank') renderBank();
+    }
+    if (player.rentedCar && player.rentedCar.id && player.rentedCar.until > 0 && player.rentedCar.until <= Date.now()) {
+        const rc = CARS.find(x => x.id === player.rentedCar.id);
+        addToChat('[Гараж] Аренда ' + (rc ? rc.icon + ' ' + rc.name : 'машины') + ' истекла. Бонусы сняты.');
+        player.rentedCar = {id:null, until:0};
     }
     if (fight && fight.isBoss) {
         const now = Date.now();
@@ -2632,6 +3222,7 @@ function tick() {
         addToChat('[Бизнес] Аренда закончилась: временный работник ушёл.');
     }
     if (currentScreen === 'crew') renderCrew();
+    if (currentScreen === 'prof') renderProf();
     if (currentScreen === 'character') {
         if (player.classChangeUntil > 0 && classCdLeft() === 0) { player.classChangeUntil = 0; renderCharacter(); }
         else {
